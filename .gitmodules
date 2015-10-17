@@ -1,0 +1,12 @@
+[submodule "CS194-bwt"]
+	path = CS194-bwt
+	url = git@github.com:CS194-project/CS194-bwt.git
+[submodule "CS194-LZSS"]
+	path = CS194-LZSS
+	url = git@github.com:CS194-project/CS194-LZSS.git
+[submodule "CS194-zlib"]
+	path = CS194-zlib
+	url = git@github.com:CS194-project/CS194-zlib.git
+[submodule "CS194-pigz"]
+	path = CS194-pigz
+	url = git@github.com:CS194-project/CS194-pigz.git
