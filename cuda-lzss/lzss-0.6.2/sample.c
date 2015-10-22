@@ -108,7 +108,7 @@ char *RemovePath(char *fullPath);
 ****************************************************************************/
 int main(int argc, char *argv[])
 {
-    struct timeval time1,time2,diff;
+    struct timeval time1,time2;
     option_t *optList, *thisOpt;
     FILE *fpIn, *fpOut;      /* pointer to open input & output files */
     MODES mode;
@@ -233,7 +233,7 @@ int main(int argc, char *argv[])
     /* we have valid parameters encode or decode */
     if (mode == ENCODE)
     {       gettimeofday(&time1,NULL);
-	    printf("Before encoding\n");
+	    /* printf("Before encoding\n"); */
 	    EncodeLZSSByFile(fpIn, fpOut);
     }
     else
@@ -245,9 +245,10 @@ int main(int argc, char *argv[])
     fclose(fpIn);
     fclose(fpOut);
     gettimeofday(&time2,NULL);
-/*   timersub(&time2,&time1,&diff); */
-    printf("T1 is %lusec and %luusec\n",time1.tv_sec,time1.tv_usec);
-    printf("T2 is %lusec and %luusec\n",time2.tv_sec,time2.tv_usec);
+    /* timersub(&time2,&time1,&diff); */
+    printf("%d ms\n", (int)(time2.tv_sec*1e6+time2.tv_usec-time1.tv_sec*1e6-time1.tv_usec)/1000);
+    /* printf("T1 is %lusec and %luusec\n",time1.tv_sec,time1.tv_usec); */
+    /* printf("T2 is %lusec and %luusec\n",time2.tv_sec,time2.tv_usec); */
     return EXIT_SUCCESS;
 }
 
