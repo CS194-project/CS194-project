@@ -16,7 +16,7 @@
 /example
 /example64
 /examplesh
-/libz.so*
+/*.so*
 /minigzip
 /minigzip64
 /minigzipsh

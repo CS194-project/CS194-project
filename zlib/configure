@@ -25,7 +25,7 @@ if [ -n "${CHOST}" ]; then
 fi
 
 # destination name for static library
-STATICLIB=libz.a
+STATICLIB=libcz.a
 
 # extract zlib version numbers from zlib.h
 VER=`sed -n -e '/VERSION "/s/.*"\(.*\)".*/\1/p' < zlib.h`
@@ -184,9 +184,9 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
   fi
   case "$uname" in
   Linux* | linux* | GNU | GNU/* | solaris*)
-        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"} ;;
+        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map"} ;;
   *BSD | *bsd* | DragonFly)
-        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libz.so.1,--version-script,zlib.map"}
+        LDSHARED=${LDSHARED-"$cc -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map"}
         LDCONFIG="ldconfig -m" ;;
   CYGWIN* | Cygwin* | cygwin* | OS/2*)
         EXE='.exe' ;;
@@ -200,22 +200,22 @@ if test "$gcc" -eq 1 && ($cc -c $test.c) >> configure.log 2>&1; then
         EXE='.exe' ;;
   QNX*)  # This is for QNX6. I suppose that the QNX rule below is for QNX2,QNX4
          # (alain.bonnefoy@icbt.com)
-                 LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibz.so.1"} ;;
+                 LDSHARED=${LDSHARED-"$cc -shared -Wl,-hlibcz.so.1"} ;;
   HP-UX*)
          LDSHARED=${LDSHARED-"$cc -shared $SFLAGS"}
          case `(uname -m || echo unknown) 2>/dev/null` in
          ia64)
                  shared_ext='.so'
-                 SHAREDLIB='libz.so' ;;
+                 SHAREDLIB='libcz.so' ;;
          *)
                  shared_ext='.sl'
-                 SHAREDLIB='libz.sl' ;;
+                 SHAREDLIB='libcz.sl' ;;
          esac ;;
   Darwin* | darwin*)
              shared_ext='.dylib'
-             SHAREDLIB=libz$shared_ext
-             SHAREDLIBV=libz.$VER$shared_ext
-             SHAREDLIBM=libz.$VER1$shared_ext
+             SHAREDLIB=libcz$shared_ext
+             SHAREDLIBV=libcz.$VER$shared_ext
+             SHAREDLIBM=libcz.$VER1$shared_ext
              LDSHARED=${LDSHARED-"$cc -dynamiclib -install_name $libdir/$SHAREDLIBM -compatibility_version $VER1 -current_version $VER3"}
              if libtool -V 2>&1 | grep Apple > /dev/null; then
                  AR="libtool"
@@ -241,21 +241,21 @@ else
          case `(uname -m || echo unknown) 2>/dev/null` in
          ia64)
              shared_ext='.so'
-             SHAREDLIB='libz.so' ;;
+             SHAREDLIB='libcz.so' ;;
          *)
              shared_ext='.sl'
-             SHAREDLIB='libz.sl' ;;
+             SHAREDLIB='libcz.sl' ;;
          esac ;;
   IRIX*)     SFLAGS=${CFLAGS-"-ansi -O2 -rpath ."}
              CFLAGS=${CFLAGS-"-ansi -O2"}
-             LDSHARED=${LDSHARED-"cc -shared -Wl,-soname,libz.so.1"} ;;
+             LDSHARED=${LDSHARED-"cc -shared -Wl,-soname,libcz.so.1"} ;;
   OSF1\ V4*) SFLAGS=${CFLAGS-"-O -std1"}
              CFLAGS=${CFLAGS-"-O -std1"}
              LDFLAGS="${LDFLAGS} -Wl,-rpath,."
-             LDSHARED=${LDSHARED-"cc -shared  -Wl,-soname,libz.so -Wl,-msym -Wl,-rpath,$(libdir) -Wl,-set_version,${VER}:1.0"} ;;
+             LDSHARED=${LDSHARED-"cc -shared  -Wl,-soname,libcz.so -Wl,-msym -Wl,-rpath,$(libdir) -Wl,-set_version,${VER}:1.0"} ;;
   OSF1*)     SFLAGS=${CFLAGS-"-O -std1"}
              CFLAGS=${CFLAGS-"-O -std1"}
-             LDSHARED=${LDSHARED-"cc -shared -Wl,-soname,libz.so.1"} ;;
+             LDSHARED=${LDSHARED-"cc -shared -Wl,-soname,libcz.so.1"} ;;
   QNX*)      SFLAGS=${CFLAGS-"-4 -O"}
              CFLAGS=${CFLAGS-"-4 -O"}
              LDSHARED=${LDSHARED-"cc"}
@@ -266,7 +266,7 @@ else
              CFLAGS=${CFLAGS-"-O3"}
              LDSHARED=${LDSHARED-"cc -dy -KPIC -G"} ;;
   SunOS\ 5* | solaris*)
-         LDSHARED=${LDSHARED-"cc -G -h libz$shared_ext.$VER1"}
+         LDSHARED=${LDSHARED-"cc -G -h libcz$shared_ext.$VER1"}
          SFLAGS=${CFLAGS-"-fast -KPIC"}
          CFLAGS=${CFLAGS-"-fast"}
          if test $build64 -eq 1; then
@@ -318,9 +318,9 @@ else
 fi
 
 # destination names for shared library if not defined above
-SHAREDLIB=${SHAREDLIB-"libz$shared_ext"}
-SHAREDLIBV=${SHAREDLIBV-"libz$shared_ext.$VER"}
-SHAREDLIBM=${SHAREDLIBM-"libz$shared_ext.$VER1"}
+SHAREDLIB=${SHAREDLIB-"libcz$shared_ext"}
+SHAREDLIBV=${SHAREDLIBV-"libcz$shared_ext.$VER"}
+SHAREDLIBM=${SHAREDLIBM-"libcz$shared_ext.$VER1"}
 
 echo >> configure.log
 
