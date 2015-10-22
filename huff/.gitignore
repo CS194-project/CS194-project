@@ -1,0 +1,10 @@
+bitarray.o
+bitfile.o
+canonical.o
+huffman.o
+huflocal.o
+libhuffman.a
+liboptlist.a
+optlist.o
+sample
+sample.o

@@ -1,0 +1,15 @@
+pigz
+pigz.o
+try.o
+unpigz
+yarn.o
+zopfli/src/zopfli/blocksplitter.o
+zopfli/src/zopfli/cache.o
+zopfli/src/zopfli/deflate.o
+zopfli/src/zopfli/hash.o
+zopfli/src/zopfli/katajainen.o
+zopfli/src/zopfli/lz77.o
+zopfli/src/zopfli/squeeze.o
+zopfli/src/zopfli/tree.o
+zopfli/src/zopfli/util.o
+
