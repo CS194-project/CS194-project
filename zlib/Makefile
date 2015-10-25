@@ -16,15 +16,16 @@
 # To install in $HOME instead of /usr/local, use:
 #    make install prefix=$HOME
 
-CC=g++
-
+CC=nvcc
+GCC=g++
 CFLAGS=-O3  -D_LARGEFILE64_SOURCE=1
 #CFLAGS=-O -DMAX_WBITS=14 -DMAX_MEM_LEVEL=7
 #CFLAGS=-g -DDEBUG
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
 #           -Wstrict-prototypes -Wmissing-prototypes
 
-SFLAGS=-O3  -fPIC -D_LARGEFILE64_SOURCE=1
+SFLAGS=-O3  -Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
+GCCSFLAGS=-O3  -fPIC -D_LARGEFILE64_SOURCE=1
 LDFLAGS= 
 TEST_LDFLAGS=-L. libcz.a
 LDSHARED=g++ -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map
@@ -160,7 +161,7 @@ minigzip64.o: test/minigzip.c zlib.h zconf.h
 	mv objs/$*.o $@
 
 placebo $(SHAREDLIBV): $(PIC_OBJS) libcz.a
-	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
+	$(LDSHARED) $(GCCSFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
 	ln -s $@ $(SHAREDLIBM)
@@ -173,10 +174,10 @@ minigzip$(EXE): minigzip.o $(STATICLIB)
 	$(CC) $(CFLAGS) -o $@ minigzip.o $(TEST_LDFLAGS)
 
 examplesh$(EXE): example.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV)
+	$(GCC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV)
 
 minigzipsh$(EXE): minigzip.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV)
+	$(GCC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV)
 
 example64$(EXE): example64.o $(STATICLIB)
 	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS)
