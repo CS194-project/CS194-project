@@ -27,8 +27,8 @@ CFLAGS=-O3  -D_LARGEFILE64_SOURCE=1
 SFLAGS=-O3  -fPIC -D_LARGEFILE64_SOURCE=1
 LDFLAGS= 
 TEST_LDFLAGS=-L. libcz.a
-LDSHARED=gcc -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map
-CPP=gcc -E
+LDSHARED=g++ -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map
+CPP=g++ -E
 
 STATICLIB=libcz.a
 SHAREDLIB=libcz.so
