@@ -16,18 +16,21 @@
 # To install in $HOME instead of /usr/local, use:
 #    make install prefix=$HOME
 
-CC=nvcc
-GCC=g++
+CC=g++
+NVCC=nvcc
 CFLAGS=-O3  -D_LARGEFILE64_SOURCE=1
+
+CUDA_LIB=/usr/local/cuda/lib64
+CUDA_INCLUDE=/usr/local/cuda/include
 #CFLAGS=-O -DMAX_WBITS=14 -DMAX_MEM_LEVEL=7
 #CFLAGS=-g -DDEBUG
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
 #           -Wstrict-prototypes -Wmissing-prototypes
 
-SFLAGS=-O3  -Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
-GCCSFLAGS=-O3  -fPIC -D_LARGEFILE64_SOURCE=1
-LDFLAGS= 
-TEST_LDFLAGS=-L. libcz.a
+SFLAGS=-O3  -fPIC -D_LARGEFILE64_SOURCE=1
+NVSFLAGS=-O3  -Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
+LDFLAGS= -L/usr/local/cuda/lib64 -lcudart
+TEST_LDFLAGS=-L. libcz.a -L/usr/local/cuda/lib64 -lcudart
 LDSHARED=g++ -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map
 CPP=g++ -E
 
@@ -55,11 +58,13 @@ mandir =${prefix}/share/man
 man3dir = ${mandir}/man3
 pkgconfigdir = ${libdir}/pkgconfig
 
-OBJZ = adler32.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o
+CUFILES := $(wildcard *.cu)
+
+OBJZ = adler32.o crc32.o deflate.o infback.o inffast.o inflate.o inftrees.o trees.o zutil.o $(patsubst %.cu,%.o,$(CUFILES))
 OBJG = compress.o uncompr.o gzclose.o gzlib.o gzread.o gzwrite.o
 OBJC = $(OBJZ) $(OBJG)
 
-PIC_OBJZ = adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo
+PIC_OBJZ = adler32.lo crc32.lo deflate.lo infback.lo inffast.lo inflate.lo inftrees.lo trees.lo zutil.lo $(patsubst %.cu,%.lo,$(CUFILES))
 PIC_OBJG = compress.lo uncompr.lo gzclose.lo gzlib.lo gzread.lo gzwrite.lo
 PIC_OBJC = $(PIC_OBJZ) $(PIC_OBJG)
 
@@ -160,8 +165,16 @@ minigzip64.o: test/minigzip.c zlib.h zconf.h
 	$(CC) $(SFLAGS) -DPIC -c -o objs/$*.o $<
 	mv objs/$*.o $@
 
+$(patsubst %.cu,%.o,$(CUFILES)): %.o : %.cu
+	$(NVCC) $(CFLAGS) $< -c -o $@
+
+$(patsubst %.cu,%.lo,$(CUFILES)): %.lo : %.cu
+	mkdir objs 2>/dev/null || test -d objs
+	$(NVCC) $(NVSFLAGS) -DPIC -c -o objs/$*.o $<
+	mv objs/$*.o $@
+
 placebo $(SHAREDLIBV): $(PIC_OBJS) libcz.a
-	$(LDSHARED) $(GCCSFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
+	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
 	ln -s $@ $(SHAREDLIBM)
@@ -174,10 +187,10 @@ minigzip$(EXE): minigzip.o $(STATICLIB)
 	$(CC) $(CFLAGS) -o $@ minigzip.o $(TEST_LDFLAGS)
 
 examplesh$(EXE): example.o $(SHAREDLIBV)
-	$(GCC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV)
+	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart
 
 minigzipsh$(EXE): minigzip.o $(SHAREDLIBV)
-	$(GCC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV)
+	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart
 
 example64$(EXE): example64.o $(STATICLIB)
 	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS)

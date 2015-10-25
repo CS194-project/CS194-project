@@ -50,6 +50,7 @@
 /* @(#) $Id$ */
 
 #include "deflate.h"
+#include "cuda_hello_world.h"
 
 const char deflate_copyright[] =
   " deflate 1.2.8 Copyright 1995-2013 Jean-loup Gailly and Mark Adler ";
@@ -1873,6 +1874,7 @@ deflate_fast (deflate_state * s, int flush)
 local block_state
 deflate_slow (deflate_state * s, int flush)
 {
+  cuda_hello_world();
   IPos hash_head;		/* head of hash chain */
   int bflush;			/* set if current block must be flushed */
 
