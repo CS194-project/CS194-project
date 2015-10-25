@@ -1,6 +1,9 @@
 CS194 Fall 2015 Project
 CUDA optimization of pigz
 
+Currently, "Hello World!" is printed whenever deflate_slow() function
+is called in zlib.
+
 
 "make -j" under each folder to build its source code.
 
