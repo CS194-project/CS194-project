@@ -1,0 +1,23 @@
+CS194 Fall 2015 Project
+CUDA optimization of pigz
+
+
+Oct 24 2015
+
+1. Now CUDA Toolchain is required to build this.
+   Make sure CUDA is installed under /usr/local/cuda
+
+2. Make sure environment variable LD_LIBRARY_PATH
+   includes /usr/local/cuda/lib64 and THIS_REPO/zlib
+   THIS_REPO means the absolute location of this repo's root
+   folder in your disk.
+
+   HOWTO:
+   
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64
+   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:THIS_REPO/zlib
+
+   Then add the above commands to the file "~/.bashrc", then reboot.
+
+   If you don't do this, you will encounter "cannot find shared library"
+   error while trying to execute executables.
