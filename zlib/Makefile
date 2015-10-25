@@ -126,7 +126,7 @@ cover: infcover
 
 libcz.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
-	-@ ($(RANLIB) $@ || true) >/dev/null 2>&1
+	($(RANLIB) $@ || true) >/dev/null 2>&1
 
 match.o: match.S
 	$(CPP) match.S > _match.s
@@ -155,16 +155,16 @@ minigzip64.o: test/minigzip.c zlib.h zconf.h
 .SUFFIXES: .lo
 
 .c.lo:
-	-@mkdir objs 2>/dev/null || test -d objs
+	mkdir objs 2>/dev/null || test -d objs
 	$(CC) $(SFLAGS) -DPIC -c -o objs/$*.o $<
-	-@mv objs/$*.o $@
+	mv objs/$*.o $@
 
 placebo $(SHAREDLIBV): $(PIC_OBJS) libcz.a
 	$(LDSHARED) $(SFLAGS) -o $@ $(PIC_OBJS) $(LDSHAREDLIBC) $(LDFLAGS)
 	rm -f $(SHAREDLIB) $(SHAREDLIBM)
 	ln -s $@ $(SHAREDLIB)
 	ln -s $@ $(SHAREDLIBM)
-	-@rmdir objs
+	rmdir objs
 
 example$(EXE): example.o $(STATICLIB)
 	$(CC) $(CFLAGS) -o $@ example.o $(TEST_LDFLAGS)
@@ -185,15 +185,15 @@ minigzip64$(EXE): minigzip64.o $(STATICLIB)
 	$(CC) $(CFLAGS) -o $@ minigzip64.o $(TEST_LDFLAGS)
 
 install-libs: $(LIBS)
-	-@if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
-	-@if [ ! -d $(DESTDIR)$(libdir)       ]; then mkdir -p $(DESTDIR)$(libdir); fi
-	-@if [ ! -d $(DESTDIR)$(sharedlibdir) ]; then mkdir -p $(DESTDIR)$(sharedlibdir); fi
-	-@if [ ! -d $(DESTDIR)$(man3dir)      ]; then mkdir -p $(DESTDIR)$(man3dir); fi
-	-@if [ ! -d $(DESTDIR)$(pkgconfigdir) ]; then mkdir -p $(DESTDIR)$(pkgconfigdir); fi
+	if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
+	if [ ! -d $(DESTDIR)$(libdir)       ]; then mkdir -p $(DESTDIR)$(libdir); fi
+	if [ ! -d $(DESTDIR)$(sharedlibdir) ]; then mkdir -p $(DESTDIR)$(sharedlibdir); fi
+	if [ ! -d $(DESTDIR)$(man3dir)      ]; then mkdir -p $(DESTDIR)$(man3dir); fi
+	if [ ! -d $(DESTDIR)$(pkgconfigdir) ]; then mkdir -p $(DESTDIR)$(pkgconfigdir); fi
 	cp $(STATICLIB) $(DESTDIR)$(libdir)
 	chmod 644 $(DESTDIR)$(libdir)/$(STATICLIB)
-	-@($(RANLIB) $(DESTDIR)$(libdir)/libcz.a || true) >/dev/null 2>&1
-	-@if test -n "$(SHAREDLIBV)"; then \
+	($(RANLIB) $(DESTDIR)$(libdir)/libcz.a || true) >/dev/null 2>&1
+	if test -n "$(SHAREDLIBV)"; then \
 	  cp $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir); \
 	  echo "cp $(SHAREDLIBV) $(DESTDIR)$(sharedlibdir)"; \
 	  chmod 755 $(DESTDIR)$(sharedlibdir)/$(SHAREDLIBV); \
@@ -211,7 +211,7 @@ install-libs: $(LIBS)
 # ldconfig is for Linux
 
 install: install-libs
-	-@if [ ! -d $(DESTDIR)$(includedir)   ]; then mkdir -p $(DESTDIR)$(includedir); fi
+	if [ ! -d $(DESTDIR)$(includedir)   ]; then mkdir -p $(DESTDIR)$(includedir); fi
 	cp zlib.h zconf.h $(DESTDIR)$(includedir)
 	chmod 644 $(DESTDIR)$(includedir)/zlib.h $(DESTDIR)$(includedir)/zconf.h
 
@@ -230,7 +230,7 @@ zlib.3.pdf: zlib.3
 	groff -mandoc -f H -T ps zlib.3 | ps2pdf - zlib.3.pdf
 
 zconf.h.cmakein: zconf.h.in
-	-@ TEMPFILE=zconfh_$$; \
+	 TEMPFILE=zconfh_$$; \
 	echo "/#define ZCONF_H/ a\\\\\n#cmakedefine Z_PREFIX\\\\\n#cmakedefine Z_HAVE_UNISTD_H\n" >> $$TEMPFILE &&\
 	sed -f $$TEMPFILE zconf.h.in > zconf.h.cmakein &&\
 	touch -r zconf.h.in zconf.h.cmakein &&\
@@ -254,10 +254,10 @@ clean:
 maintainer-clean: distclean
 distclean: clean zconf zconf.h.cmakein docs
 	rm -f Makefile zlib.pc configure.log
-	-@rm -f .DS_Store
-	-@printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile
-	-@printf '\ndistclean:\n\tmake -f Makefile.in distclean\n' >> Makefile
-	-@touch -r Makefile.in Makefile
+	rm -f .DS_Store
+	printf 'all:\n\t-@echo "Please use ./configure first.  Thank you."\n' > Makefile
+	printf '\ndistclean:\n\tmake -f Makefile.in distclean\n' >> Makefile
+	touch -r Makefile.in Makefile
 
 tags:
 	etags *.[ch]
