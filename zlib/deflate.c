@@ -1224,8 +1224,8 @@ lm_init (deflate_state * s)
  *   string (strstart) and its distance is <= MAX_DIST, and prev_length >= 1
  * OUT assertion: the match length is not greater than s->lookahead.
  */
-#ifndef ASMV
-/* For 80x86 and 680x0, an optimized version will be provided in match.asm or
+/* #ifndef ASMV */ /* Disabled */
+ /* For 80x86 and 680x0, an optimized version will be provided in match.asm or
  * match.S. The code will be functionally equivalent.
  */
 local uInt
@@ -1384,7 +1384,7 @@ longest_match (deflate_state * s, IPos cur_match)
     return (uInt) best_len;
   return s->lookahead;
 }
-#endif /* ASMV */
+/*#endif*/ /* ASMV */ /* Disabled */
 
 #else /* FASTEST */
 

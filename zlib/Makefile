@@ -134,17 +134,17 @@ libcz.a: $(OBJS)
 	$(AR) $(ARFLAGS) $@ $(OBJS)
 	($(RANLIB) $@ || true) >/dev/null 2>&1
 
-match.o: match.S
-	$(CPP) match.S > _match.s
-	$(CC) -c _match.s
-	mv _match.o match.o
-	rm -f _match.s
+#match.o: match.S
+#	$(CPP) match.S > _match.s
+#	$(CC) -c _match.s
+#	mv _match.o match.o
+#	rm -f _match.s
 
-match.lo: match.S
-	$(CPP) match.S > _match.s
-	$(CC) -c -fPIC _match.s
-	mv _match.o match.lo
-	rm -f _match.s
+#match.lo: match.S
+#	$(CPP) match.S > _match.s
+#	$(CC) -c -fPIC _match.s
+#	mv _match.o match.lo
+#	rm -f _match.s
 
 example.o: test/example.c zlib.h zconf.h
 	$(CC) $(CFLAGS) -I. -c -o $@ test/example.c
