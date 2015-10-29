@@ -1,12 +1,12 @@
 CC=cc
-CFLAGS=-O3 -Wall -Wextra
+CFLAGS=-O3 -Wall -Wextra -DNOTHREAD
 LDFLAGS=-lcz
 LIB=../zlib
 ZOPFLI=zopfli/src/zopfli/
 # use gcc and gmake on Solaris
 
 pigz: pigz.o yarn.o try.o ${ZOPFLI}deflate.o ${ZOPFLI}blocksplitter.o ${ZOPFLI}tree.o ${ZOPFLI}lz77.o ${ZOPFLI}cache.o ${ZOPFLI}hash.o ${ZOPFLI}util.o ${ZOPFLI}squeeze.o ${ZOPFLI}katajainen.o
-	$(CC) -o pigz $^ -lpthread -lm -L$(LIB) $(LDFLAGS)
+	$(CC) -o pigz $^ -lpthread -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB)
 	ln -f pigz unpigz
 
 pigz.o: pigz.c yarn.h try.h ${ZOPFLI}deflate.h ${ZOPFLI}util.h
