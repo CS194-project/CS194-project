@@ -17,7 +17,8 @@
 #    make install prefix=$HOME
 
 CC=g++
-NVCC=nvcc
+NVCCPATH=/usr/local/cuda/bin
+NVCC=$(NVCCPATH)/nvcc
 CFLAGS=-O3  -D_LARGEFILE64_SOURCE=1
 
 CUDA_LIB=/usr/local/cuda/lib64
