@@ -12,30 +12,15 @@ Oct 24 2015
 1. Now CUDA Toolchain is required to build zlib.
    Make sure CUDA is installed under /usr/local/cuda
 
-2. Make sure environment variable LD_LIBRARY_PATH
-   includes /usr/local/cuda/lib64 and THIS_REPO/zlib
-   THIS_REPO means the absolute location of this repo's root
-   folder in your disk.
-
-   HOWTO:
-   
-   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/usr/local/cuda/lib64
-   export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:THIS_REPO/zlib
-
-   Then add the above commands to the file "~/.bashrc", then reboot.
-
-   If you don't do this, you will encounter "cannot find shared library"
-   error while trying to execute executables.
-
-3. You can add .cu files into zlib folder now.
+2. You can add .cu files into zlib folder now.
    To let cuda functions runs in zlib, write cuda related code in .cu files only.
    Write a corresponding .h file and that the zlib source code includes that .h
    and then call the cuda function in zlib function.
 
-4. Don't add extra .cu files to zlib folder because currently Makefile compiles
+3. Don't add extra .cu files to zlib folder because currently Makefile compiles
    all .cu files in that folder.
 
-5. It is not required to rebuild pigz if zlib is rebuilt
+4. It is not required to rebuild pigz if zlib is rebuilt
 
 TODO:
 1. New added .h files are not detected by Makefile. Therefore, if you have
