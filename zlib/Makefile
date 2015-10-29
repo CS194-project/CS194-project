@@ -28,8 +28,8 @@ CUDA_INCLUDE=/usr/local/cuda/include
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
 #           -Wstrict-prototypes -Wmissing-prototypes
 
-SFLAGS=-O3  -fPIC -D_LARGEFILE64_SOURCE=1
-NVSFLAGS=-O3  -Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
+SFLAGS=-O0 -ggdb3 -fPIC -D_LARGEFILE64_SOURCE=1
+NVSFLAGS=-O0 -g -Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
 LDFLAGS= -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 TEST_LDFLAGS=-L. libcz.a -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 LDSHARED=g++ -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map

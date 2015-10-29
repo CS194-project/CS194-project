@@ -1,5 +1,5 @@
 CC=cc
-CFLAGS=-O3 -Wall -Wextra -DNOTHREAD
+CFLAGS=-ggdb3 -O0 -Wall -Wextra -DNOTHREAD
 LDFLAGS=-lcz
 LIB=../zlib
 ZOPFLI=zopfli/src/zopfli/
