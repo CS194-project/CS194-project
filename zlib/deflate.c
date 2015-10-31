@@ -50,7 +50,7 @@
 /* @(#) $Id$ */
 
 #include "deflate.h"
-#include "cuda_hello_world.h"
+#include "deflateCuda.h"
 
 const char deflate_copyright[] =
   " deflate 1.2.8 Copyright 1995-2013 Jean-loup Gailly and Mark Adler ";
@@ -1231,6 +1231,9 @@ lm_init (deflate_state * s)
 local uInt
 longest_match (deflate_state * s, IPos cur_match)
 {
+#ifdef LONGEST_MATCH_CUDA
+    return longest_match_cuda(s, cur_match);
+#else
   unsigned chain_length = s->max_chain_length;	/* max hash chain length */
   register Bytef *scan = s->window + s->strstart;	/* current string */
   register Bytef *match;	/* matched string */
@@ -1383,6 +1386,7 @@ longest_match (deflate_state * s, IPos cur_match)
   if ((uInt) best_len <= s->lookahead)
     return (uInt) best_len;
   return s->lookahead;
+#endif /* LONGEST_MATCH_CUDA */
 }
 /*#endif*/ /* ASMV */ /* Disabled */
 
@@ -1874,7 +1878,6 @@ deflate_fast (deflate_state * s, int flush)
 local block_state
 deflate_slow (deflate_state * s, int flush)
 {
-  cuda_hello_world();
   IPos hash_head;		/* head of hash chain */
   int bflush;			/* set if current block must be flushed */
 

@@ -15,11 +15,13 @@
 #    make install
 # To install in $HOME instead of /usr/local, use:
 #    make install prefix=$HOME
-
+ifdef ENABLE_CUDA
+LONGEST_MATCH_CUDA:='-DLONGEST_MATCH_CUDA=1'
+endif
 CC=g++
 NVCCPATH=/usr/local/cuda/bin
 NVCC=$(NVCCPATH)/nvcc
-CFLAGS=-O3  -D_LARGEFILE64_SOURCE=1
+CFLAGS=-O0 -ggdb3  -D_LARGEFILE64_SOURCE=1 $(LONGEST_MATCH_CUDA)
 
 CUDA_LIB=/usr/local/cuda/lib64
 CUDA_INCLUDE=/usr/local/cuda/include
@@ -29,7 +31,7 @@ CUDA_INCLUDE=/usr/local/cuda/include
 #           -Wstrict-prototypes -Wmissing-prototypes
 
 SFLAGS=-O0 -ggdb3 -fPIC -D_LARGEFILE64_SOURCE=1
-NVSFLAGS=-O0 -g -Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
+NVSFLAGS=-O0 -g -Xcompiler -fPIC,-ggdb3 -D_LARGEFILE64_SOURCE=1
 LDFLAGS= -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 TEST_LDFLAGS=-L. libcz.a -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 LDSHARED=g++ -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map
@@ -167,7 +169,7 @@ minigzip64.o: test/minigzip.c zlib.h zconf.h
 	mv objs/$*.o $@
 
 $(patsubst %.cu,%.o,$(CUFILES)): %.o : %.cu
-	$(NVCC) $(CFLAGS) $< -c -o $@
+	$(NVCC) $(NVCFLAGS) $< -c -o $@
 
 $(patsubst %.cu,%.lo,$(CUFILES)): %.lo : %.cu
 	mkdir objs 2>/dev/null || test -d objs
