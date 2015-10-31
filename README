@@ -21,7 +21,7 @@ Oct 31 2015
 5. The corpus files are from Silesia.
    Besides the normal files, create a file "combined" which is the combination of all the other files.
 
-
+6. Add perf_zlib.txt and perf_zopfli.txt which are the perf results of pigz with -9 and -11 respectively.
 
 Example:
 ./gdb.sh
