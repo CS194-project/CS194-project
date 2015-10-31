@@ -1,5 +1,6 @@
 CC=cc
-CFLAGS=-ggdb3 -O0 -Wall -Wextra -DNOTHREAD
+CFLAGS?=-O3 -Wall -Wextra -DNOTHREAD
+DEBUGCFLAGS=-ggdb3 -O0 -Wall -Wextra -DNOTHREAD
 LDFLAGS=-lcz
 LIB=../zlib
 ZOPFLI=zopfli/src/zopfli/
@@ -8,6 +9,8 @@ ZOPFLI=zopfli/src/zopfli/
 pigz: pigz.o yarn.o try.o ${ZOPFLI}deflate.o ${ZOPFLI}blocksplitter.o ${ZOPFLI}tree.o ${ZOPFLI}lz77.o ${ZOPFLI}cache.o ${ZOPFLI}hash.o ${ZOPFLI}util.o ${ZOPFLI}squeeze.o ${ZOPFLI}katajainen.o
 	$(CC) -o pigz $^ -lpthread -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB)
 	ln -f pigz unpigz
+debug:
+	$(MAKE) CFLAGS='$(DEBUGCFLAGS)'
 
 pigz.o: pigz.c yarn.h try.h ${ZOPFLI}deflate.h ${ZOPFLI}util.h
 

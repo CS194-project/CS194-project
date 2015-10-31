@@ -1,6 +1,9 @@
 all:
 	$(MAKE) -j -C zlib
 	$(MAKE) -j -C pigz
+debug:
+	$(MAKE) -j -C zlib debug
+	$(MAKE) -j -C pigz debug
 
 clean:
 	$(MAKE) -C zlib clean
