@@ -9,4 +9,4 @@ combined: $(FILES)
 
 .PHONY: clean
 clean:
-	rm -rf $(FILES) $(FILESBZ2) combined
+	rm -rf $(addsuffix .gz, $(FILES)) $(addsuffix .bz2, $(FILES))
