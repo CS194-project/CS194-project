@@ -3396,7 +3396,11 @@ local void copymeta(char *from, char *to)
     (void)chmod(to, st.st_mode & 07777);
 
     /* copy owner's user and group, ignore errors */
-    (void)chown(to, st.st_uid, st.st_gid);
+    int error = chown(to, st.st_uid, st.st_gid);
+    if (error != 0)
+      {
+         fprintf(stderr, "%s\n", strerror(errno));
+      }
 
     /* copy access and modify times, ignore errors */
     times[0].tv_sec = st.st_atime;
