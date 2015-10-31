@@ -1,12 +1,29 @@
 CS194 Fall 2015 Project
 CUDA optimization of pigz
 
-Currently, "Hello World!" is printed whenever deflate_slow() function
-is called in zlib.
 
+Oct 31 2015
 
-"make -j" under each folder to build its source code.
+1. To compile and test the code,
+   In the root folder
+   "make" to build the code
+   "make debug" (may need to make clean first) to build the code with debugging info
+   "make test" to test the code
+   "make clean" to delete the compiled outputs
 
+2. To use cuda-gdb, make sure you have run "make clean && make debug"
+   ./gdb.sh [compression level(optional)] [compressed file(optional)]
+ 
+Example:
+./gdb.sh
+    This runs "pigz/pigz -k -9 corpus/dickens" in cuda-gdb. cuda-gdb immediately runs the program and stops at the beginning of main.
+
+./gdb.sh 11
+    This runs "pigz/pigz -k -11 corpus/dickens"
+
+./gdb.sh 11 corpus/xml"
+    This runs "pigz/pigz -k -11 corpus/xml"
+   
 Oct 24 2015
 
 1. Now CUDA Toolchain is required to build zlib.
