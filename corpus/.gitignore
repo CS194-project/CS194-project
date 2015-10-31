@@ -11,3 +11,5 @@ webster
 xml
 x-ray
 combined
+*.gz
+*.bz2
