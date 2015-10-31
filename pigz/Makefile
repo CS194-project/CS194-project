@@ -2,7 +2,8 @@ CC=cc
 CFLAGS?=-O3 -Wall -Wextra -DNOTHREAD
 DEBUGCFLAGS=-ggdb3 -O0 -Wall -Wextra -DNOTHREAD
 LDFLAGS=-lcz
-LIB=../zlib
+mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
+LIB=$(dir $(mkfile_path))/../zlib
 ZOPFLI=zopfli/src/zopfli/
 # use gcc and gmake on Solaris
 
