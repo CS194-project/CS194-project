@@ -24,7 +24,7 @@ NVCC=$(NVCCPATH)/nvcc
 CFLAGS?=-O2 -D_LARGEFILE64_SOURCE=1 $(LONGEST_MATCH_CUDA)
 NVCFLAGS?=-O2 -D_LARGEFILE64_SOURCE=1 $(LONGEST_MATCH_CUDA)
 DEBUGCFLAGS=-O0 -ggdb3 -D_LARGEFILE64_SOURCE=1 $(LONGEST_MATCH_CUDA)
-DEBUGNVCFLAGS=-O0 -g -Xcompiler -ggdb3  -D_LARGEFILE64_SOURCE=1 $(LONGEST_MATCH_CUDA)
+DEBUGNVCFLAGS=-O0 -g -G -Xcompiler -ggdb3  -D_LARGEFILE64_SOURCE=1 $(LONGEST_MATCH_CUDA)
 
 CUDA_LIB=/usr/local/cuda/lib64
 CUDA_INCLUDE=/usr/local/cuda/include
@@ -33,8 +33,12 @@ CUDA_INCLUDE=/usr/local/cuda/include
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
 #           -Wstrict-prototypes -Wmissing-prototypes
 
-SFLAGS=-fPIC -D_LARGEFILE64_SOURCE=1
-NVSFLAGS=-Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
+SFLAGS?=-fPIC -D_LARGEFILE64_SOURCE=1
+NVSFLAGS?=-Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
+DEBUGSFLAGS=-ggdb3 -fPIC -D_LARGEFILE64_SOURCE=1
+DEBUGNVSFLAGS=-g -G -Xcompiler -ggdb3,-fPIC -D_LARGEFILE64_SOURCE=1
+
+
 LDFLAGS= -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 TEST_LDFLAGS=-L. libcz.a -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 LDSHARED=g++ -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map
@@ -85,7 +89,7 @@ PIC_OBJS = $(PIC_OBJC) $(PIC_OBJA)
 all: static shared all64
 
 debug:
-	$(MAKE) CFLAGS='$(DEBUGCFLAGS)' NVCFLAGS='$(DEBUGNVCFLAGS)'
+	$(MAKE) CFLAGS='$(DEBUGCFLAGS)' NVCFLAGS='$(DEBUGNVCFLAGS)' SFLAGS='$(DEBUGSFLAGS)' NVSFLAGS='$(DEBUGNVSFLAGS)'
 
 static: example$(EXE) minigzip$(EXE)
 
