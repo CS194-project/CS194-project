@@ -13,7 +13,16 @@ Oct 31 2015
 
 2. To use cuda-gdb, make sure you have run "make clean && make debug"
    ./gdb.sh [compression level(optional)] [compressed file(optional)]
- 
+
+3. "make corpus" to download the corpus files
+
+4. ./benchmark.sh to run a complete benchmark on compression level 9 on corpus files.
+
+5. The corpus files are from Silesia.
+   Besides the normal files, create a file "combined" which is the combination of all the other files.
+
+
+
 Example:
 ./gdb.sh
     This runs "pigz/pigz -k -9 corpus/dickens" in cuda-gdb. cuda-gdb immediately runs the program and stops at the beginning of main.
