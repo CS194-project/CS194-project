@@ -1,25 +1,25 @@
 /***************************************************************************
-*          Sample Program Using Burrows-Wheeler Transform Library
+*                     Sample Program Using LZSS Library
 *
 *   File    : sample.c
-*   Purpose : Demonstrate usage of Burrows-Wheeler transform library
+*   Purpose : Demonstrate usage of LZSS library
 *   Author  : Michael Dipperstein
-*   Date    : August 20, 2004
+*   Date    : February 21, 2004
 *
 ****************************************************************************
 *
-* SAMPLE: Sample usage of Burrows-Wheeler transform library
-* Copyright (C) 2004-2005, 2007, 2014 by
+* SAMPLE: Sample usage of LZSS Library
+* Copyright (C) 2004, 2006, 2007, 2014 by
 * Michael Dipperstein (mdipper@alumni.engr.ucsb.edu)
 *
-* This file is part of the BWT library.
+* This file is part of the lzss library.
 *
-* The BWT library is free software; you can redistribute it and/or modify
-* it under the terms of the GNU Lesser General Public License as published
-* by the Free Software Foundation; either version 3 of the License, or (at
-* your option) any later version.
+* The lzss library is free software; you can redistribute it and/or
+* modify it under the terms of the GNU Lesser General Public License as
+* published by the Free Software Foundation; either version 3 of the
+* License, or (at your option) any later version.
 *
-* The BWT library is distributed in the hope that it will be useful, but
+* The lzss library is distributed in the hope that it will be useful, but
 * WITHOUT ANY WARRANTY; without even the implied warranty of
 * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU Lesser
 * General Public License for more details.
@@ -35,8 +35,25 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "lzss.h"
 #include "optlist.h"
-#include "bwxform.h"
+
+/***************************************************************************
+*                            TYPE DEFINITIONS
+***************************************************************************/
+typedef enum
+{
+    ENCODE,
+    DECODE
+} modes_t;
+
+/***************************************************************************
+*                                CONSTANTS
+***************************************************************************/
+
+/***************************************************************************
+*                            GLOBAL VARIABLES
+***************************************************************************/
 
 /***************************************************************************
 *                               PROTOTYPES
@@ -46,33 +63,33 @@
 *                                FUNCTIONS
 ***************************************************************************/
 
-/***************************************************************************
+/****************************************************************************
 *   Function   : main
 *   Description: This is the main function for this program, it validates
-*                the command line input and, if valid, it will call
-*                functions to transform or reverse transform a file using
-*                the Burrows-Wheeler trasnform algorithm with or without
-*                additional move to front coding.
+*                the command line input and, if valid, it will either
+*                encode a file using the LZSS algorithm or decode a
+*                file encoded with the LZSS algorithm.
 *   Parameters : argc - number of parameters
 *                argv - parameter list
 *   Effects    : Encodes/Decodes input file
-*   Returned   : EXIT_SUCCESS for success, otherwise EXIT_FAILURE.
-***************************************************************************/
+*   Returned   : 0 for success, -1 for failure.  errno will be set in the
+*                event of a failure.
+****************************************************************************/
 int main(int argc, char *argv[])
 {
-    option_t *optList, *thisOpt;
-    FILE *inFile, *outFile; /* pointer to input & output files */
-    char encode;            /* encode/decode */
-    xform_t method;         /* perform move to front */
+    option_t *optList;
+    option_t *thisOpt;
+    FILE *fpIn;             /* pointer to open input file */
+    FILE *fpOut;            /* pointer to open output file */
+    modes_t mode;
 
     /* initialize data */
-    inFile = NULL;
-    outFile = NULL;
-    encode = 1;
-    method = XFORM_WITHOUT_MTF;
+    fpIn = NULL;
+    fpOut = NULL;
+    mode = ENCODE;
 
     /* parse command line */
-    optList = GetOptList(argc, argv, "cdmi:o:h?");
+    optList = GetOptList(argc, argv, "cdi:o:h?");
     thisOpt = optList;
 
     while (thisOpt != NULL)
@@ -80,73 +97,73 @@ int main(int argc, char *argv[])
         switch(thisOpt->option)
         {
             case 'c':       /* compression mode */
-                encode = 1;
+                mode = ENCODE;
                 break;
 
             case 'd':       /* decompression mode */
-                encode = 0;
-                break;
-
-            case 'm':       /* perform move to front */
-                method = XFORM_WITH_MTF;
+                mode = DECODE;
                 break;
 
             case 'i':       /* input file name */
-                if (inFile != NULL)
+                if (fpIn != NULL)
                 {
                     fprintf(stderr, "Multiple input files not allowed.\n");
-                    fclose(inFile);
+                    fclose(fpIn);
 
-                    if (outFile != NULL)
+                    if (fpOut != NULL)
                     {
-                        fclose(outFile);
+                        fclose(fpOut);
                     }
 
                     FreeOptList(optList);
-                    exit(EXIT_FAILURE);
+                    return -1;
                 }
-                else if ((inFile = fopen(thisOpt->argument, "rb")) == NULL)
+
+                /* open input file as binary */
+                fpIn = fopen(thisOpt->argument, "rb");
+                if (fpIn == NULL)
                 {
-                    perror("Opening Input File");
+                    perror("Opening input file");
 
-                    if (outFile != NULL)
+                    if (fpOut != NULL)
                     {
-                        fclose(outFile);
+                        fclose(fpOut);
                     }
 
                     FreeOptList(optList);
-                    exit(EXIT_FAILURE);
+                    return -1;
                 }
-
                 break;
 
             case 'o':       /* output file name */
-                if (outFile != NULL)
+                if (fpOut != NULL)
                 {
                     fprintf(stderr, "Multiple output files not allowed.\n");
-                    fclose(outFile);
+                    fclose(fpOut);
 
-                    if (inFile != NULL)
+                    if (fpIn != NULL)
                     {
-                        fclose(inFile);
+                        fclose(fpIn);
                     }
 
                     FreeOptList(optList);
-                    exit(EXIT_FAILURE);
+                    return -1;
                 }
-                else if ((outFile = fopen(thisOpt->argument, "wb")) == NULL)
+
+                /* open output file as binary */
+                fpOut = fopen(thisOpt->argument, "wb");
+                if (fpOut == NULL)
                 {
-                    perror("Opening Output File");
+                    perror("Opening output file");
 
-                    if (inFile != NULL)
+                    if (fpIn != NULL)
                     {
-                        fclose(inFile);
+                        fclose(fpIn);
                     }
 
                     FreeOptList(optList);
-                    exit(EXIT_FAILURE);
+                    return -1;
                 }
-
                 break;
 
             case 'h':
@@ -155,13 +172,14 @@ int main(int argc, char *argv[])
                 printf("options:\n");
                 printf("  -c : Encode input file to output file.\n");
                 printf("  -d : Decode input file to output file.\n");
-                printf("  -m : Perform the Move-to-Front coding.\n");
                 printf("  -i <filename> : Name of input file.\n");
                 printf("  -o <filename> : Name of output file.\n");
                 printf("  -h | ?  : Print out command line options.\n\n");
-                printf("Default: %s -c\n", FindFileName(argv[0]));
+                printf("Default: %s -c -i stdin -o stdout\n",
+                    FindFileName(argv[0]));
+
                 FreeOptList(optList);
-                return(EXIT_SUCCESS);
+                return 0;
         }
 
         optList = thisOpt->next;
@@ -169,43 +187,29 @@ int main(int argc, char *argv[])
         thisOpt = optList;
     }
 
-    /* validate command line */
-    if (inFile == NULL)
+    /* use stdin/out if no files are provided */
+    if (fpIn == NULL)
     {
-        fprintf(stderr, "Input file must be provided\n");
-        fprintf(stderr, "Enter \"%s -?\" for help.\n", FindFileName(argv[0]));
-
-        if (outFile != NULL)
-        {
-            free(outFile);
-        }
-
-        exit (EXIT_FAILURE);
+        fpIn = stdin;
     }
-    else if (outFile == NULL)
+
+    if (fpOut == NULL)
     {
-        fprintf(stderr, "Output file must be provided\n");
-        fprintf(stderr, "Enter \"%s -?\" for help.\n", FindFileName(argv[0]));
-
-        if (inFile != NULL)
-        {
-            free(inFile);
-        }
-
-        exit (EXIT_FAILURE);
+        fpOut = stdout;
     }
 
     /* we have valid parameters encode or decode */
-    if (encode)
+    if (mode == ENCODE)
     {
-        BWXform(inFile, outFile, method);
+        EncodeLZSS(fpIn, fpOut);
     }
     else
     {
-        BWReverseXform(inFile, outFile, method);
+        DecodeLZSS(fpIn, fpOut);
     }
 
-    fclose(inFile);
-    fclose(outFile);
-    return EXIT_SUCCESS;
+    /* remember to close files */
+    fclose(fpIn);
+    fclose(fpOut);
+    return 0;
 }
