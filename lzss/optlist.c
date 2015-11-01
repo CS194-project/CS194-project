@@ -175,7 +175,7 @@ static option_t *MakeOpt(
 {
     option_t *opt;
 
-    opt = malloc(sizeof(option_t));
+    opt = (option_t*)malloc(sizeof(option_t));
 
     if (opt != NULL)
     {

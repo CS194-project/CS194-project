@@ -43,6 +43,11 @@
 extern unsigned char slidingWindow[];
 extern unsigned char uncodedLookahead[];
 
+/* cuda device buffer.
+ * TODO: missing cudaFree() */
+static unsigned char *cuda_window;
+static unsigned char *cuda_lookahead;
+
 /***************************************************************************
 *                                FUNCTIONS
 ***************************************************************************/
@@ -51,19 +56,23 @@ extern unsigned char uncodedLookahead[];
 *   Function   : InitializeSearchStructures
 *   Description: This function initializes structures used to speed up the
 *                process of mathcing uncoded strings to strings in the
-*                sliding window.  The brute force search doesn't use any
-*                special structures, so this function doesn't do anything.
+*                sliding window.
 *   Parameters : None
-*   Effects    : None
+*   Effects    : Initialize cuda_window and cuda_lookahead.
 *   Returned   : 0 for success, -1 for failure.  errno will be set in the
 *                event of a failure.
 ****************************************************************************/
 int InitializeSearchStructures(void)
 {
+    cudaMalloc(&cuda_window, sizeof(char)*WINDOW_SIZE);
+    cudaMalloc(&cuda_lookahead, sizeof(char)*MAX_CODED);
+    cudaMemcpy(cuda_window, slidingWindow, sizeof(char)*WINDOW_SIZE, cudaMemcpyHostToDevice);
+    cudaMemcpy(cuda_lookahead, uncodedLookahead, sizeof(char)*WINDOW_SIZE, cudaMemcpyHostToDevice);
     return 0;
 }
 
-__device__ encoded_string_t maxString (encoded_string_t a, encoded_string_t b, unsigned int windowHead)
+__device__ encoded_string_t maxString (encoded_string_t a, encoded_string_t b
+                                       , unsigned int windowHead)
 {
     if (a.length > b.length)
         return a;
@@ -84,8 +93,8 @@ __device__ encoded_string_t maxString (encoded_string_t a, encoded_string_t b, u
     }
 }
 
-__global__ void FindMatchKernel (char* window
-                                 , char* lookahead
+__global__ void FindMatchKernel (unsigned char* window
+                                 , unsigned char* lookahead
                                  , unsigned int windowHead
                                  , unsigned int uncodedHead
                                  , encoded_string_t *kernelReturn)
@@ -98,7 +107,8 @@ __global__ void FindMatchKernel (char* window
     matchData.length = 0;
     matchData.offset = 0;
     int idx = threadIdx.x + blockIdx.x*blockDim.x;
-    i = Wrap(windowHead+idx, WINDOW_SIZE);  /* start at the beginning of the sliding window */
+    i = Wrap(windowHead+idx, WINDOW_SIZE);  /* start at the beginning of the
+                                             * sliding window */
     j = 0;
 
     while (1)
@@ -138,7 +148,7 @@ __global__ void FindMatchKernel (char* window
     for (int i = 256; i > 0; i/=2)
     {
         if (id < i)
-            data[idx] = maxString(data[idx], data[idx+i], windowHead);
+            data[id] = maxString(data[id], data[id+i], windowHead);
         __syncthreads ();
     }
 
@@ -160,19 +170,13 @@ __global__ void FindMatchKernel (char* window
 encoded_string_t FindMatch(const unsigned int windowHead,
     unsigned int uncodedHead)
 {
-    char *window;
-    char *lookahead;
     encoded_string_t *cudaReturn;
     encoded_string_t hostReturn[1];
-    cudaMalloc(&window, sizeof(char)*WINDOW_SIZE);
-    cudaMalloc(&lookahead, sizeof(char)*MAX_CODED);
     cudaMalloc(&cudaReturn, sizeof(encoded_string_t));
-    cudaMemcpy(window, slidingWindow, sizeof(char)*WINDOW_SIZE, cudaMemcpyHostToDevice);
-    cudaMemcpy(lookahead, uncodedLookahead, sizeof(char)*WINDOW_SIZE, cudaMemcpyHostToDevice);
-    FindMatchKernel<<<WINDOW_SIZE, 512>>>(window, lookahead, windowHead, uncodedHead, cudaReturn);
-    cudaMemcpy(hostReturn, cudaReturn, sizeof(encoded_string_t), cudaMemcpyDeviceToHost);
-    cudaFree(window);
-    cudaFree(lookahead);
+    FindMatchKernel<<<WINDOW_SIZE/512, 512>>>(cuda_window, cuda_lookahead
+                                          , windowHead, uncodedHead, cudaReturn);
+    cudaMemcpy(hostReturn, cudaReturn, sizeof(encoded_string_t)
+               , cudaMemcpyDeviceToHost);
     cudaFree(cudaReturn);
     return hostReturn[0];
 }
@@ -190,6 +194,72 @@ encoded_string_t FindMatch(const unsigned int windowHead,
 ****************************************************************************/
 int ReplaceChar(const unsigned int charIndex, const unsigned char replacement)
 {
+    /* UNUSED */
     slidingWindow[charIndex] = replacement;
     return 0;
+}
+
+/****************************************************************************
+*   TODO: Make the description more clearly.
+*
+*   Function   : UpdateWindowAndLookAhead
+*   Description: This function reads newDataLength's characters from newData
+*                , and push them into lookahead.
+*                In order to keep lookahead's size constant, pop
+*                the oldeest stuff from lookahead and push it into sliding
+*                window. Pop oldest stuff in sliding window to keep its Size
+*                constant.
+*
+*                In this cuda case, sliding window is cuda array "cuda_window"
+*                and lookahead is cuda array "cuda_lookahead".
+*
+*                Sliding Window and lookahead are stored in circular loop.
+*
+*                You can consider cuda_window[windowHead] is the beginning of
+*                window and cuda_lookahead[uncodedHead] is the starting of
+*                lookahead.
+*                We pop stuff out from the beginning of arrays.
+*
+*   Parameters : newData: the added input data.
+*                newDataLength: The length of new data.
+*                matchLength: The size of match string's lenght. Must be
+*                             greater or equal to newDataLength.
+*                windowHead: The current position of sliding window.
+*                            Start to pop things out from here.
+*                uncodedHead: The current position of uncoded Head.
+*                
+*   Effects    : "cuda_window" and "cuda_lookahead" are updated.
+****************************************************************************/
+void UpdateWindowAndLookAhead (const char *newData, int newDataLength
+                               , int matchLength
+                               ,int windowHead, int uncodedHead)
+{
+    int i = 0;
+    while (i < newDataLength)
+    {
+        /* add old byte into sliding window and new into lookahead */
+        slidingWindow[windowHead] = uncodedLookahead[uncodedHead];
+        cudaMemcpy (cuda_window+windowHead, uncodedLookahead+uncodedHead
+                    , sizeof(char), cudaMemcpyHostToDevice);
+        uncodedLookahead[uncodedHead] = newData[i];
+
+        cudaMemcpy (cuda_lookahead+uncodedHead, newData+i
+                    , sizeof(char), cudaMemcpyHostToDevice);
+        
+        windowHead = Wrap((windowHead + 1), WINDOW_SIZE);
+        uncodedHead = Wrap((uncodedHead + 1), MAX_CODED);
+        i++;
+    }
+
+    /* handle case where we hit EOF before filling lookahead */
+    while (i < matchLength)
+    {
+        slidingWindow[windowHead] = uncodedLookahead[uncodedHead];
+        cudaMemcpy (cuda_window+windowHead, uncodedLookahead+uncodedHead
+                    , sizeof(char), cudaMemcpyHostToDevice);
+        /* nothing to add to lookahead here */
+        windowHead = Wrap((windowHead + 1), WINDOW_SIZE);
+        uncodedHead = Wrap((uncodedHead + 1), MAX_CODED);
+        i++;
+    }
 }

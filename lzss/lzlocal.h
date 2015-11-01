@@ -95,6 +95,12 @@ typedef struct encoded_string_t
 * FindMatch will return the encoded_string_t value referencing the match
 * in the sliding window dictionary.  the length field will be 0 if no
 * match is found.
+*
+* UpdateWindowAndLookAhead works as its name.
+* It reads newDataLength's characters from newData, and push them into lookahead.
+* In order to keep lookahead's size constant, pop the oldeest stuff from
+* lookahead and push it into sliding window. Pop oldest stuff in sliding window
+* to keep its size constant.
 ***************************************************************************/
 int InitializeSearchStructures(void);
 int ReplaceChar(const unsigned int charIndex, const unsigned char replacement);
@@ -102,4 +108,7 @@ int ReplaceChar(const unsigned int charIndex, const unsigned char replacement);
 encoded_string_t FindMatch(const unsigned int windowHead,
     const unsigned int uncodedHead);
 
+void UpdateWindowAndLookAhead (const char *newData, int newDataLength
+                               , int matchLength
+                               ,int windowHead, int uncodedHead);
 #endif      /* ndef _LZSS_LOCAL_H */

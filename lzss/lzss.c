@@ -35,6 +35,7 @@
 ***************************************************************************/
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 #include <errno.h>
 #include "lzlocal.h"
 #include "bitfile.h"
@@ -174,26 +175,42 @@ int EncodeLZSS(FILE *fpIn, FILE *fpOut)
         * sliding window with new bytes from the input file.
         ********************************************************************/
         i = 0;
-        while ((i < matchData.length) && ((c = getc(fpIn)) != EOF))
+        char *inputData = (char*)malloc(matchData.length);
+        int input_size = fread (inputData, sizeof(char), matchData.length, fpIn);
+
+        
+        UpdateWindowAndLookAhead (inputData, input_size
+                               , matchData.length
+                                  ,windowHead, uncodedHead);
+        windowHead = Wrap(windowHead + matchData.length, WINDOW_SIZE);
+        uncodedHead = Wrap(uncodedHead + matchData.length, MAX_CODED);
+
+        /* End of File */
+        len -= matchData.length - input_size;
+
+        /*
+        while ((i < matchData.length) && input_size > 0)
         {
-            /* add old byte into sliding window and new into lookahead */
+            // add old byte into sliding window and new into lookahead 
             ReplaceChar(windowHead, uncodedLookahead[uncodedHead]);
-            uncodedLookahead[uncodedHead] = c;
+            uncodedLookahead[uncodedHead] = inputData[i];
             windowHead = Wrap((windowHead + 1), WINDOW_SIZE);
             uncodedHead = Wrap((uncodedHead + 1), MAX_CODED);
             i++;
+            input_size--;
         }
+        free(inputData);
 
-        /* handle case where we hit EOF before filling lookahead */
+        // handle case where we hit EOF before filling lookahead
         while (i < matchData.length)
         {
             ReplaceChar(windowHead, uncodedLookahead[uncodedHead]);
-            /* nothing to add to lookahead here */
-            windowHead = Wrap((windowHead + 1), WINDOW_SIZE);
-            uncodedHead = Wrap((uncodedHead + 1), MAX_CODED);
-            len--;
+            // nothing to add to lookahead here
+            //windowHead = Wrap((windowHead + 1), WINDOW_SIZE);
+            //uncodedHead = Wrap((uncodedHead + 1), MAX_CODED);
+            //len--;
             i++;
-        }
+        }*/
 
         /* find match for the remaining characters */
         matchData = FindMatch(windowHead, uncodedHead);
