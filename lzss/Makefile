@@ -1,13 +1,15 @@
 ############################################################################
 # Makefile for lzss encode/decode library and sample program
 ############################################################################
-CC = gcc
-LD = gcc
-CFLAGS = -I. -O3 -Wall -Wextra -pedantic -ansi -c
+NVCC = /usr/local/cuda/bin/nvcc
+CC = g++
+LD = g++
+CFLAGS = -I. -O3 -Wall -Wextra -c
+NVCFLAGS = -I. -O3 -Xcompiler -Wall,-Wextra -c
 LDFLAGS = -O3 -o
 
 # libraries
-LIBS = -L. -llzss -loptlist
+LIBS = -L. -L/usr/local/cuda/lib64 -Wl,-rpath=/usr/local/cuda/lib64 -llzss -loptlist -lcudart
 
 # Treat NT and non-NT windows the same
 ifeq ($(OS),Windows_NT)
@@ -29,7 +31,7 @@ endif
 
 # define the method to be used for searching for matches (choose one)
 # brute force
-# FMOBJ = brute.o
+#FMOBJ ?= brute.o
 
 # linked list
 # FMOBJ = list.o
@@ -41,9 +43,19 @@ endif
 # FMOBJ = kmp.o
 
 # binary tree
-FMOBJ = tree.o
+#FMOBJ = tree.o
+
+# cuda brute
+FMOBJ ?= cuda_brute.o
 
 LZOBJS = $(FMOBJ) lzss.o
+
+.PHONY: test
+test: all
+	./sample -c -i sample.c -o sample.gz
+	./sample -d -i sample.gz -o sample2.c
+	diff sample.c sample2.c
+	rm sample2.c sample.gz
 
 all:		sample$(EXE) liblzss.a liboptlist.a
 
@@ -74,6 +86,9 @@ kmp.o:		kmp.c lzlocal.h
 
 tree.o:		tree.c lzlocal.h
 		$(CC) $(CFLAGS) $<
+
+cuda_brute.o:   cuda_brute.cu lzlocal.h
+		$(NVCC) $(NVCFLAGS) $<
 
 bitfile.o:	bitfile.c bitfile.h
 		$(CC) $(CFLAGS) $<
