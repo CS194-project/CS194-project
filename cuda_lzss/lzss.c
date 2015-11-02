@@ -35,10 +35,12 @@
 ***************************************************************************/
 #include <stdio.h>
 #include <string.h>
-#include <stdlib.h>
 #include <errno.h>
+#include <time.h>
+#include <stdlib.h>
 #include "lzlocal.h"
 #include "bitfile.h"
+static double debug_time3 = 0;
 
 /***************************************************************************
 *                            TYPE DEFINITIONS
@@ -174,51 +176,42 @@ int EncodeLZSS(FILE *fpIn, FILE *fpOut)
         * Replace the matchData.length worth of bytes we've matched in the
         * sliding window with new bytes from the input file.
         ********************************************************************/
-        i = 0;
-        char *inputData = (char*)malloc(matchData.length);
-        int input_size = fread (inputData, sizeof(char), matchData.length, fpIn);
 
-        
-        UpdateWindowAndLookAhead (inputData, input_size
-                               , matchData.length
-                                  ,windowHead, uncodedHead);
-        windowHead = Wrap(windowHead + matchData.length, WINDOW_SIZE);
-        uncodedHead = Wrap(uncodedHead + matchData.length, MAX_CODED);
-
-        /* End of File */
-        len -= matchData.length - input_size;
-
-        /*
-        while ((i < matchData.length) && input_size > 0)
+        char *input = (char*)malloc(matchData.length*sizeof(char));
+        unsigned int input_size = fread(input, sizeof(char), matchData.length, fpIn);
+        while (i < input_size)
         {
-            // add old byte into sliding window and new into lookahead 
+            /* add old byte into sliding window and new into lookahead */
             ReplaceChar(windowHead, uncodedLookahead[uncodedHead]);
-            uncodedLookahead[uncodedHead] = inputData[i];
+            uncodedLookahead[uncodedHead] = input[i];
             windowHead = Wrap((windowHead + 1), WINDOW_SIZE);
             uncodedHead = Wrap((uncodedHead + 1), MAX_CODED);
             i++;
-            input_size--;
         }
-        free(inputData);
 
-        // handle case where we hit EOF before filling lookahead
+        /* handle case where we hit EOF before filling lookahead */
         while (i < matchData.length)
         {
             ReplaceChar(windowHead, uncodedLookahead[uncodedHead]);
-            // nothing to add to lookahead here
-            //windowHead = Wrap((windowHead + 1), WINDOW_SIZE);
-            //uncodedHead = Wrap((uncodedHead + 1), MAX_CODED);
-            //len--;
+            /* nothing to add to lookahead here */
+            windowHead = Wrap((windowHead + 1), WINDOW_SIZE);
+            uncodedHead = Wrap((uncodedHead + 1), MAX_CODED);
+            len--;
             i++;
-        }*/
-
+        }
+        free(input);
+        int start_t3 = clock();
+        i = 0;
         /* find match for the remaining characters */
         matchData = FindMatch(windowHead, uncodedHead);
+        int end_t3 = clock();
+    debug_time3 += (double)(end_t3-start_t3)/CLOCKS_PER_SEC;
     }
 
     /* we've encoded everything, free bitfile structure */
     BitFileToFILE(bfpOut);
-
+    //end ();
+    //printf ("%f\n%f\n%f", debug_time, debug_time2, debug_time3);
    return 0;
 }
 

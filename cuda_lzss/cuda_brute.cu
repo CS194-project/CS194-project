@@ -35,6 +35,9 @@
 *                             INCLUDED FILES
 ***************************************************************************/
 #include "lzlocal.h"
+#include <thrust/reduce.h>
+#include <thrust/device_ptr.h>
+#include <time.h>
 
 /***************************************************************************
 *                            GLOBAL VARIABLES
@@ -43,6 +46,11 @@
 extern unsigned char slidingWindow[];
 extern unsigned char uncodedLookahead[];
 
+static char *window;
+static char *lookahead;
+static encoded_string_t *cudaReturn;
+double debug_time = 0;
+double debug_time2 = 0;
 /***************************************************************************
 *                                FUNCTIONS
 ***************************************************************************/
@@ -60,9 +68,59 @@ extern unsigned char uncodedLookahead[];
 ****************************************************************************/
 int InitializeSearchStructures(void)
 {
-    return 0;
+  cudaMalloc(&window, sizeof(char)*WINDOW_SIZE);
+  cudaMalloc(&lookahead, sizeof(char)*MAX_CODED);
+  cudaMalloc(&cudaReturn, sizeof(encoded_string_t)*WINDOW_SIZE);
+  return 0;
 }
 
+__device__ encoded_string_t maxString (encoded_string_t a, encoded_string_t b)
+{
+    if (a.length > b.length)
+        return a;
+    else
+        return b;
+}
+
+struct encoded_binary: public thrust::binary_function<encoded_string_t
+                                                      , encoded_string_t
+                                                      , encoded_string_t>
+{
+     __device__ __host__
+    encoded_string_t operator() (const encoded_string_t a, const encoded_string_t b)
+    {
+      if (a.length > b.length)
+        return a;
+      else
+        return b;
+    }
+
+};
+
+__global__ void FindMatchKernel (char* window
+                                 , char* lookahead
+                                 , unsigned int windowHead
+                                 , unsigned int uncodedHead
+                                 , encoded_string_t *kernelReturn)
+{
+  //    __shared__ encoded_string_t data[512];
+    encoded_string_t matchData;
+    unsigned int i;
+    unsigned int j;
+    int idx = threadIdx.x + blockIdx.x*blockDim.x;
+    i = Wrap(windowHead+idx, WINDOW_SIZE);  /* start at the beginning of the sliding window */
+    j = 0;
+
+    while(window[Wrap((i + j), WINDOW_SIZE)] ==
+          lookahead[Wrap((uncodedHead + j), MAX_CODED)] && j < MAX_CODED)
+    {
+        j++;
+    }
+            
+    matchData.length = j;
+    matchData.offset = i;
+    kernelReturn[idx] = matchData;
+}
 /****************************************************************************
 *   Function   : FindMatch
 *   Description: This function will search through the slidingWindow
@@ -78,54 +136,18 @@ int InitializeSearchStructures(void)
 encoded_string_t FindMatch(const unsigned int windowHead,
     unsigned int uncodedHead)
 {
-    encoded_string_t matchData;
-    unsigned int i;
-    unsigned int j;
-
-    matchData.length = 0;
-    matchData.offset = 0;
-    i = windowHead;  /* start at the beginning of the sliding window */
-    j = 0;
-
-    while (1)
-    {
-        if (slidingWindow[i] == uncodedLookahead[uncodedHead])
-        {
-            /* we matched one. how many more match? */
-            j = 1;
-
-            while(slidingWindow[Wrap((i + j), WINDOW_SIZE)] ==
-                uncodedLookahead[Wrap((uncodedHead + j), MAX_CODED)])
-            {
-                if (j >= MAX_CODED)
-                {
-                    break;
-                }
-                j++;
-            }
-
-            if (j > matchData.length)
-            {
-                matchData.length = j;
-                matchData.offset = i;
-            }
-        }
-
-        if (j >= MAX_CODED)
-        {
-            matchData.length = MAX_CODED;
-            break;
-        }
-
-        i = Wrap((i + 1), WINDOW_SIZE);
-        if (i == windowHead)
-        {
-            /* we wrapped around */
-            break;
-        }
-    }
-
-    return matchData;
+  cudaMemcpy(window, slidingWindow, sizeof(char)*WINDOW_SIZE, cudaMemcpyHostToDevice);
+  cudaMemcpy(lookahead, uncodedLookahead, sizeof(char)*MAX_CODED, cudaMemcpyHostToDevice);
+    FindMatchKernel<<<WINDOW_SIZE/1024, 1024>>>(window, lookahead, windowHead, uncodedHead, cudaReturn);
+        encoded_string_t result[1];
+        cudaMemcpy(result, cudaReturn, sizeof(encoded_string_t), cudaMemcpyDeviceToHost);
+        
+        /*
+    // wrap raw pointer with a device_ptr
+   // thrust::device_ptr<encoded_string_t> return_ptr = thrust::device_pointer_cast(cudaReturn);
+   // encoded_string_t initial = {0, 0};
+   // encoded_string_t result = thrust::reduce(return_ptr, return_ptr + WINDOW_SIZE, initial, encoded_binary());*/
+    return result[0];
 }
 
 /****************************************************************************
@@ -143,4 +165,12 @@ int ReplaceChar(const unsigned int charIndex, const unsigned char replacement)
 {
     slidingWindow[charIndex] = replacement;
     return 0;
+}
+
+void end ()
+{
+    cudaFree(window);
+  cudaFree(lookahead);
+  cudaFree(cudaReturn);
+  cudaDeviceReset();
 }

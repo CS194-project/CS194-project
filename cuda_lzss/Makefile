@@ -5,7 +5,7 @@ NVCC = /usr/local/cuda/bin/nvcc
 CC = g++
 LD = g++
 CFLAGS = -I. -O3 -Wall -Wextra -c
-NVCFLAGS = -I. -O3 -Xcompiler -Wall,-Wextra -c
+NVCFLAGS = -I. -O3 -gencode arch=compute_30,code=sm_30 -Xcompiler -Wall -c
 LDFLAGS = -O3 -o
 
 # libraries
@@ -37,7 +37,7 @@ endif
 # FMOBJ = list.o
 
 # hash table
-# FMOBJ = hash.o
+ FMOBJ = hash.o
 
 # Knuth–Morris–Pratt search
 # FMOBJ = kmp.o
@@ -46,16 +46,17 @@ endif
 #FMOBJ = tree.o
 
 # cuda brute
-FMOBJ ?= cuda_brute.o
+?FMOBJ ?= cuda_brute.o
 
 LZOBJS = $(FMOBJ) lzss.o
 
 .PHONY: test
 test: all
-	./sample -c -i sample.c -o sample.gz
+	time ./sample -c -i sample.c -o sample.gz
 	./sample -d -i sample.gz -o sample2.c
 	diff sample.c sample2.c
-	rm sample2.c sample.gz
+	ls -n sample.gz
+	rm sample.gz sample2.c
 
 all:		sample$(EXE) liblzss.a liboptlist.a
 
