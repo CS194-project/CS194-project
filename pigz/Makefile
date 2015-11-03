@@ -1,6 +1,12 @@
 CC=cc
-CFLAGS?=-O3 -Wall -Wextra -DNOTHREAD
-DEBUGCFLAGS=-ggdb3 -O0 -Wall -Wextra -DNOTHREAD
+CFLAGS?=-O3 -Wall -Wextra
+DEBUGCFLAGS=-ggdb3 -O0 -Wall -Wextra
+
+ifdef NOTHREAD
+CFLAGS += -DNOTHREAD
+DEBUGCFLAGS += -DNOTHREAD
+endif
+
 LDFLAGS=-lcz
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 LIB=$(dir $(mkfile_path))/../zlib
