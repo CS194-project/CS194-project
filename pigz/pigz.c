@@ -540,6 +540,14 @@ local int complain(char *fmt, ...)
     return 0;
 }
 
+local double timestamp()
+{
+    struct timeval tv;
+    gettimeofday (&tv, 0);
+    return tv.tv_sec + 1e-6*tv.tv_usec;
+}
+
+local double total_time = 0, io_time = 0;
 #ifdef DEBUG
 
 /* memory tracking */
@@ -899,6 +907,7 @@ local inline size_t vstrcpy(char **str, size_t *size, size_t off, void *cpy)
 /* read up to len bytes into buf, repeating read() calls as needed */
 local size_t readn(int desc, unsigned char *buf, size_t len)
 {
+    double t0 = timestamp();
     ssize_t ret;
     size_t got;
 
@@ -913,12 +922,14 @@ local size_t readn(int desc, unsigned char *buf, size_t len)
         len -= ret;
         got += ret;
     }
+    io_time += timestamp() - t0;
     return got;
 }
 
 /* write len bytes, repeating write() calls as needed */
 local void writen(int desc, unsigned char *buf, size_t len)
 {
+    double t0 = timestamp();
     ssize_t ret;
 
     while (len) {
@@ -928,6 +939,7 @@ local void writen(int desc, unsigned char *buf, size_t len)
         buf += ret;
         len -= ret;
     }
+    io_time += timestamp() - t0;
 }
 
 /* convert Unix time to MS-DOS date and time, assuming current timezone
@@ -4059,6 +4071,7 @@ local void cut_yarn(int err)
 /* Process command line arguments. */
 int main(int argc, char **argv)
 {
+    double t0 = timestamp();
     int n;                          /* general index */
     int noop;                       /* true to suppress option decoding */
     unsigned long done;             /* number of named files processed */
@@ -4183,5 +4196,7 @@ int main(int argc, char **argv)
 
     /* show log (if any) */
     log_dump();
+    total_time += timestamp() - t0;
+    printf("Total time: %.3f, IO time: %.3f, processing time: %.3f\n", total_time, io_time, total_time-io_time);
     return 0;
 }
