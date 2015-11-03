@@ -548,6 +548,7 @@ local double timestamp()
 }
 
 local double total_time = 0, io_time = 0;
+local struct stat buf_in, buf_out;
 #ifdef DEBUG
 
 /* memory tracking */
@@ -3749,6 +3750,8 @@ local void process(char *path)
         if (g.decode && (g.headis & 2) != 0 && g.stamp)
             touch(g.outf, g.stamp);
     }
+    stat(g.inf, &buf_in);
+    stat(g.outf, &buf_out);
     RELEASE(g.outf);
 }
 
@@ -4198,5 +4201,7 @@ int main(int argc, char **argv)
     log_dump();
     total_time += timestamp() - t0;
     printf("Total time: %.3f, IO time: %.3f, processing time: %.3f\n", total_time, io_time, total_time-io_time);
+    printf("input size: %jd, output size: %jd, compression ratio: %.3f\n", buf_in.st_size, buf_out.st_size, ((double) buf_in.st_size)/buf_out.st_size);
+    printf("Speed: %.3f MB/s\n", ((double) buf_in.st_size)/((total_time-io_time)*1024*1024));
     return 0;
 }
