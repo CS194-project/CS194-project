@@ -1,11 +1,6 @@
 CC=cc
 CFLAGS?=-O3 -Wall -Wextra
-DEBUGCFLAGS=-ggdb3 -O0 -Wall -Wextra
-
-ifdef NOTHREAD
-CFLAGS += -DNOTHREAD
-DEBUGCFLAGS += -DNOTHREAD
-endif
+DEBUGCFLAGS=-ggdb3 -O0 -Wall -Wextra -DDEBUG
 
 LDFLAGS=-lcz
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
@@ -46,22 +41,22 @@ ${ZOPFLI}katajainen.o: ${ZOPFLI}katajainen.c ${ZOPFLI}katajainen.h
 dev: pigz pigzt pigzn
 
 pigzt: pigzt.o yarnt.o try.o ${ZOPFLI}deflate.o ${ZOPFLI}blocksplitter.o ${ZOPFLI}tree.o ${ZOPFLI}lz77.o ${ZOPFLI}cache.o ${ZOPFLI}hash.o ${ZOPFLI}util.o ${ZOPFLI}squeeze.o ${ZOPFLI}katajainen.o
-	$(CC) -o pigzt $^ -lpthread -lm -L$(LIB) $(LDFLAGS)
+	$(CC) -o pigzt $^ -lpthread -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB)
 
 pigzt.o: pigz.c yarn.h try.h
-	$(CC) $(CFLAGS) -DDEBUG -g -c -o pigzt.o pigz.c
+	$(CC) $(CFLAGS) -c -o pigzt.o pigz.c
 
 yarnt.o: yarn.c yarn.h
-	$(CC) $(CFLAGS) -DDEBUG -g -c -o yarnt.o yarn.c
+	$(CC) $(CFLAGS) -c -o yarnt.o yarn.c
 
 pigzn: pigzn.o tryn.o ${ZOPFLI}deflate.o ${ZOPFLI}blocksplitter.o ${ZOPFLI}tree.o ${ZOPFLI}lz77.o ${ZOPFLI}cache.o ${ZOPFLI}hash.o ${ZOPFLI}util.o ${ZOPFLI}squeeze.o ${ZOPFLI}katajainen.o
-	$(CC) -o pigzn $^ -lm -L$(LIB) $(LDFLAGS)
+	$(CC) -o pigzn $^ -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB)
 
 pigzn.o: pigz.c try.h
-	$(CC) $(CFLAGS) -DDEBUG -DNOTHREAD -g -c -o pigzn.o pigz.c
+	$(CC) $(CFLAGS) -DNOTHREAD -c -o pigzn.o pigz.c
 
 tryn.o: try.c try.h
-	$(CC) $(CFLAGS) -DDEBUG -DNOTHREAD -g -c -o tryn.o try.c
+	$(CC) $(CFLAGS) -DNOTHREAD -c -o tryn.o try.c
 
 test: pigz
 	./pigz -kf pigz.c ; ./pigz -t pigz.c.gz
