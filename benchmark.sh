@@ -39,13 +39,13 @@ COMMAND='pigz/pigzn -f -k -9'
 benchmark
 
 PROMPT="Multi threaded pigz -11 benchmarks."
-FILES='corpus/combined corpus/*.orig'
+FILES='corpus/*.orig'
 COMMAND='pigz/pigz -f -k -11'
 benchmark
 
 
 PROMPT="Single threaded pigz -11 benchmarks."
-FILES='corpus/combined corpus/*.orig'
+FILES='corpus/*.orig'
 COMMAND='pigz/pigzn -f -k -11'
 benchmark
 
