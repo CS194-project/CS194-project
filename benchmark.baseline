@@ -4,6 +4,9 @@ Multi threaded pigz -9 benchmarks.
 ***********************************
 
 current file: corpus/combined
+Total time: 2.041, IO time: 0.058, processing time: 1.984
+input size: 211938580, output size: 78351340, compression ratio: 2.705
+Speed: 101.896 MB/s
 size before:211938580 Bytes
 size after: 78351340 Bytes
 time: 2.04 seconds
@@ -11,69 +14,99 @@ ratio: 2.70
 speed: 103.89 MB/s
 
 current file: corpus/dickens.big
+Total time: 1.197, IO time: 0.033, processing time: 1.165
+input size: 101924460, output size: 47252428, compression ratio: 2.157
+Speed: 83.469 MB/s
 size before:101924460 Bytes
 size after: 47252428 Bytes
-time: 1.18 seconds
+time: 1.19 seconds
 ratio: 2.15
-speed: 86.37 MB/s
+speed: 85.65 MB/s
 
 current file: corpus/mozilla.big
+Total time: 5.225, IO time: 0.143, processing time: 5.082
+input size: 512204800, output size: 207811761, compression ratio: 2.465
+Speed: 96.119 MB/s
 size before:512204800 Bytes
 size after: 207811761 Bytes
-time: 5.25 seconds
+time: 5.22 seconds
 ratio: 2.46
-speed: 97.56 MB/s
+speed: 98.12 MB/s
 
 current file: corpus/mr.big
+Total time: 0.993, IO time: 0.032, processing time: 0.962
+input size: 99705640, output size: 38836976, compression ratio: 2.567
+Speed: 98.873 MB/s
 size before:99705640 Bytes
 size after: 38836976 Bytes
-time: 0.98 seconds
+time: 0.99 seconds
 ratio: 2.56
-speed: 101.74 MB/s
+speed: 100.71 MB/s
 
 current file: corpus/nci.big
+Total time: 1.828, IO time: 0.067, processing time: 1.761
+input size: 335534450, output size: 44999454, compression ratio: 7.456
+Speed: 181.719 MB/s
 size before:335534450 Bytes
 size after: 44999454 Bytes
-time: 1.80 seconds
+time: 1.82 seconds
 ratio: 7.45
-speed: 186.40 MB/s
+speed: 184.35 MB/s
 
 current file: corpus/ooffice.big
+Total time: 0.797, IO time: 0.021, processing time: 0.776
+input size: 61521920, output size: 33434178, compression ratio: 1.840
+Speed: 75.608 MB/s
 size before:61521920 Bytes
 size after: 33434178 Bytes
-time: 0.78 seconds
+time: 0.79 seconds
 ratio: 1.84
-speed: 78.87 MB/s
+speed: 77.87 MB/s
 
 current file: corpus/osdb.big
+Total time: 1.049, IO time: 0.030, processing time: 1.019
+input size: 100856840, output size: 41354957, compression ratio: 2.439
+Speed: 94.378 MB/s
 size before:100856840 Bytes
 size after: 41354957 Bytes
-time: 1.02 seconds
+time: 1.05 seconds
 ratio: 2.43
-speed: 98.87 MB/s
+speed: 96.05 MB/s
 
 current file: corpus/reymont.big
+Total time: 0.657, IO time: 0.018, processing time: 0.639
+input size: 66272020, output size: 23872438, compression ratio: 2.776
+Speed: 98.930 MB/s
 size before:66272020 Bytes
 size after: 23872438 Bytes
-time: 0.64 seconds
+time: 0.65 seconds
 ratio: 2.77
-speed: 103.55 MB/s
+speed: 101.95 MB/s
 
 current file: corpus/samba.big
+Total time: 1.782, IO time: 0.053, processing time: 1.729
+input size: 216064000, output size: 62173364, compression ratio: 3.475
+Speed: 119.162 MB/s
 size before:216064000 Bytes
 size after: 62173364 Bytes
-time: 1.73 seconds
+time: 1.78 seconds
 ratio: 3.47
-speed: 124.89 MB/s
+speed: 121.38 MB/s
 
 current file: corpus/sao.big
+Total time: 1.218, IO time: 0.030, processing time: 1.187
+input size: 72519440, output size: 56707623, compression ratio: 1.279
+Speed: 58.249 MB/s
 size before:72519440 Bytes
 size after: 56707623 Bytes
-time: 1.16 seconds
+time: 1.21 seconds
 ratio: 1.27
-speed: 62.51 MB/s
+speed: 59.93 MB/s
 
 current file: corpus/webster.big
+Total time: 4.055, IO time: 0.109, processing time: 3.946
+input size: 414587030, output size: 153343103, compression ratio: 2.704
+Speed: 100.209 MB/s
 size before:414587030 Bytes
 size after: 153343103 Bytes
 time: 4.05 seconds
@@ -81,18 +114,24 @@ ratio: 2.70
 speed: 102.36 MB/s
 
 current file: corpus/xml.big
+Total time: 0.369, IO time: 0.013, processing time: 0.356
+input size: 53452800, output size: 11494202, compression ratio: 4.650
+Speed: 143.152 MB/s
 size before:53452800 Bytes
 size after: 11494202 Bytes
-time: 0.38 seconds
+time: 0.37 seconds
 ratio: 4.65
-speed: 140.66 MB/s
+speed: 144.46 MB/s
 
 current file: corpus/x-ray.big
+Total time: 1.318, IO time: 0.034, processing time: 1.285
+input size: 84742400, output size: 62056624, compression ratio: 1.366
+Speed: 62.896 MB/s
 size before:84742400 Bytes
 size after: 62056624 Bytes
-time: 1.33 seconds
+time: 1.32 seconds
 ratio: 1.36
-speed: 63.71 MB/s
+speed: 64.19 MB/s
 
 
 ***********************************
@@ -100,41 +139,59 @@ Single threaded pigz -9 benchmarks.
 ***********************************
 
 current file: corpus/combined
+Total time: 7.045, IO time: 0.046, processing time: 6.999
+input size: 211938580, output size: 78351340, compression ratio: 2.705
+Speed: 28.878 MB/s
 size before:211938580 Bytes
 size after: 78351340 Bytes
-time: 7.07 seconds
+time: 7.04 seconds
 ratio: 2.70
-speed: 29.97 MB/s
+speed: 30.10 MB/s
 
 current file: corpus/dickens.big
+Total time: 3.928, IO time: 0.025, processing time: 3.904
+input size: 101924460, output size: 47252428, compression ratio: 2.157
+Speed: 24.899 MB/s
 size before:101924460 Bytes
 size after: 47252428 Bytes
-time: 3.84 seconds
+time: 3.93 seconds
 ratio: 2.15
-speed: 26.54 MB/s
+speed: 25.93 MB/s
 
 current file: corpus/mozilla.big
+Total time: 18.350, IO time: 0.114, processing time: 18.236
+input size: 512204800, output size: 207811761, compression ratio: 2.465
+Speed: 26.787 MB/s
 size before:512204800 Bytes
 size after: 207811761 Bytes
-time: 18.00 seconds
+time: 18.35 seconds
 ratio: 2.46
-speed: 28.45 MB/s
+speed: 27.91 MB/s
 
 current file: corpus/mr.big
+Total time: 3.403, IO time: 0.023, processing time: 3.380
+input size: 99705640, output size: 38836976, compression ratio: 2.567
+Speed: 28.132 MB/s
 size before:99705640 Bytes
 size after: 38836976 Bytes
-time: 3.42 seconds
+time: 3.41 seconds
 ratio: 2.56
-speed: 29.15 MB/s
+speed: 29.23 MB/s
 
 current file: corpus/nci.big
+Total time: 7.227, IO time: 0.056, processing time: 7.170
+input size: 335534450, output size: 44999454, compression ratio: 7.456
+Speed: 44.627 MB/s
 size before:335534450 Bytes
 size after: 44999454 Bytes
-time: 6.37 seconds
+time: 7.22 seconds
 ratio: 7.45
-speed: 52.67 MB/s
+speed: 46.47 MB/s
 
 current file: corpus/ooffice.big
+Total time: 2.708, IO time: 0.016, processing time: 2.692
+input size: 61521920, output size: 33434178, compression ratio: 1.840
+Speed: 21.794 MB/s
 size before:61521920 Bytes
 size after: 33434178 Bytes
 time: 2.70 seconds
@@ -142,27 +199,39 @@ ratio: 1.84
 speed: 22.78 MB/s
 
 current file: corpus/osdb.big
+Total time: 3.541, IO time: 0.023, processing time: 3.518
+input size: 100856840, output size: 41354957, compression ratio: 2.439
+Speed: 27.341 MB/s
 size before:100856840 Bytes
 size after: 41354957 Bytes
-time: 3.55 seconds
+time: 3.54 seconds
 ratio: 2.43
-speed: 28.41 MB/s
+speed: 28.49 MB/s
 
 current file: corpus/reymont.big
+Total time: 2.245, IO time: 0.014, processing time: 2.231
+input size: 66272020, output size: 23872438, compression ratio: 2.776
+Speed: 28.328 MB/s
 size before:66272020 Bytes
 size after: 23872438 Bytes
-time: 2.20 seconds
+time: 2.24 seconds
 ratio: 2.77
-speed: 30.12 MB/s
+speed: 29.58 MB/s
 
 current file: corpus/samba.big
+Total time: 6.169, IO time: 0.043, processing time: 6.126
+input size: 216064000, output size: 62173364, compression ratio: 3.475
+Speed: 33.637 MB/s
 size before:216064000 Bytes
 size after: 62173364 Bytes
-time: 6.20 seconds
+time: 6.17 seconds
 ratio: 3.47
-speed: 34.84 MB/s
+speed: 35.01 MB/s
 
 current file: corpus/sao.big
+Total time: 3.713, IO time: 0.023, processing time: 3.691
+input size: 72519440, output size: 56707623, compression ratio: 1.279
+Speed: 18.739 MB/s
 size before:72519440 Bytes
 size after: 56707623 Bytes
 time: 3.71 seconds
@@ -170,111 +239,31 @@ ratio: 1.27
 speed: 19.54 MB/s
 
 current file: corpus/webster.big
+Total time: 14.767, IO time: 0.098, processing time: 14.669
+input size: 414587030, output size: 153343103, compression ratio: 2.704
+Speed: 26.954 MB/s
 size before:414587030 Bytes
 size after: 153343103 Bytes
-time: 14.29 seconds
+time: 14.76 seconds
 ratio: 2.70
-speed: 29.01 MB/s
+speed: 28.08 MB/s
 
 current file: corpus/xml.big
+Total time: 1.364, IO time: 0.010, processing time: 1.354
+input size: 53452800, output size: 11494202, compression ratio: 4.650
+Speed: 37.656 MB/s
 size before:53452800 Bytes
 size after: 11494202 Bytes
-time: 1.32 seconds
+time: 1.36 seconds
 ratio: 4.65
-speed: 40.49 MB/s
+speed: 39.30 MB/s
 
 current file: corpus/x-ray.big
+Total time: 4.079, IO time: 0.025, processing time: 4.053
+input size: 84742400, output size: 62056624, compression ratio: 1.366
+Speed: 19.939 MB/s
 size before:84742400 Bytes
 size after: 62056624 Bytes
-time: 4.21 seconds
+time: 4.07 seconds
 ratio: 1.36
-speed: 20.12 MB/s
-
-
-***********************************
-Multi threaded pigz -11 benchmarks.
-***********************************
-
-current file: corpus/dickens.orig
-size before:10192446 Bytes
-size after: 3677397 Bytes
-time: 5.36 seconds
-ratio: 2.77
-speed: 1.90 MB/s
-
-current file: corpus/mozilla.orig
-size before:51220480 Bytes
-size after: 18110987 Bytes
-time: 59.75 seconds
-ratio: 2.82
-speed: .85 MB/s
-
-current file: corpus/mr.orig
-size before:9970564 Bytes
-size after: 3442215 Bytes
-time: 11.73 seconds
-ratio: 2.89
-speed: .85 MB/s
-
-current file: corpus/nci.orig
-size before:33553445 Bytes
-size after: 2746600 Bytes
-time: 126.32 seconds
-ratio: 12.21
-speed: .26 MB/s
-
-current file: corpus/ooffice.orig
-size before:6152192 Bytes
-size after: 2990310 Bytes
-time: 4.90 seconds
-ratio: 2.05
-speed: 1.25 MB/s
-
-current file: corpus/osdb.orig
-size before:10085684 Bytes
-size after: 3611440 Bytes
-time: 4.23 seconds
-ratio: 2.79
-speed: 2.38 MB/s
-
-current file: corpus/reymont.orig
-size before:6627202 Bytes
-size after: 1694811 Bytes
-time: 5.16 seconds
-ratio: 3.91
-speed: 1.28 MB/s
-
-current file: corpus/samba.orig
-size before:21606400 Bytes
-size after: 5105810 Bytes
-time: 22.97 seconds
-ratio: 4.23
-speed: .94 MB/s
-
-current file: corpus/sao.orig
-size before:7251944 Bytes
-size after: 5241952 Bytes
-time: 4.89 seconds
-ratio: 1.38
-speed: 1.48 MB/s
-
-current file: corpus/webster.orig
-size before:41458703 Bytes
-size after: 11531752 Bytes
-time: 22.97 seconds
-ratio: 3.59
-speed: 1.80 MB/s
-
-current file: corpus/xml.orig
-size before:5345280 Bytes
-size after: 627581 Bytes
-time: 7.64 seconds
-ratio: 8.51
-speed: .69 MB/s
-
-current file: corpus/x-ray.orig
-size before:8474240 Bytes
-size after: 5746111 Bytes
-time: 3.39 seconds
-ratio: 1.47
-speed: 2.49 MB/s
+speed: 20.82 MB/s
