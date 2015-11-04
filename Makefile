@@ -1,6 +1,7 @@
 all:
 	$(MAKE) -j -C zlib
 	$(MAKE) -j -C pigz
+	$(MAKE) -j -C pigz pigzn
 debug:
 	$(MAKE) -j -C zlib debug
 	$(MAKE) -j -C pigz debug
@@ -15,5 +16,8 @@ test:
 
 corpus:
 	$(MAKE) -C corpus
+
+benchmark:
+	./benchmark.sh | tee benchmark.result
 
 .PHONY: all clean test corpus
