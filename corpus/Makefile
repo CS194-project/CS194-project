@@ -1,27 +1,30 @@
-# FILES are the original files downloaded from the corpus website.
-# FILES_BIG are the files which is the combination of 12 copies of correponding FILES.
+# FILES_ORIGIN are the original files downloaded from the corpus website.
+# FILES_BIG are the files which is the combination of 12 copies of correponding FILES_ORIGIN.
 # combination is the combination of all FILES_ORIGIN
 
 FILES := dickens mozilla mr nci ooffice osdb reymont samba sao webster xml x-ray
-FILES_BIG := $(addsuffix .big, $(FILES))
+FILES_ORIGIN := $(addsuffix .orig, $(FILES))
+FILES_BIG    := $(addsuffix .big, $(FILES))
 
-all: $(FILES) $(FILES_BIG) combined
+all: $(FILES_ORIGIN) $(FILES_BIG) combined
 
-$(FILES):
-	wget -O- http://sun.aei.polsl.pl/~sdeor/corpus/$@.bz2 | bzip2 -d > $@
+$(FILES_ORIGIN):
+	echo generating $@
+	wget -O- http://sun.aei.polsl.pl/~sdeor/corpus/$(subst .orig,,$@).bz2 | bzip2 -d > $@
 
-%.big: %
-	echo $(FILES_BIG)
+$(FILES_BIG): %.big : %.orig
+	echo generating $@
 	for i in $$(seq 1 $(words $(FILES))); \
 		do cat $< >> $@; \
 	done;
 
-combined: $(FILES)
+combined: $(FILES_ORIGIN)
+	echo generating $@
 	cat $^ >> combined
 
 .PHONY: clean distclean
 clean:
-	rm -rf $(addsuffix .bz2,$(FILES)) $(addsuffix .gz,$(FILES)) $(addsuffix .gz,$(FILES_BIG)) combined.gz
+	rm -rf $(addsuffix .bz2,$(subst .orig,,$(FILES_ORIGIN))) $(addsuffix .gz,$(FILES_ORIGIN)) $(addsuffix .gz,$(FILES_BIG)) combined.gz
 
 distclean: clean
-	rm -rf $(FILES) $(FILES_BIG) combined
+	rm -rf $(FILES_ORIGIN) $(FILES_BIG) combined
