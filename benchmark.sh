@@ -12,7 +12,7 @@ function benchmark {
       rm -f $f.gz
       echo current file: $f
       sizebefore=$(echo "scale=2;$(stat -c "%s" $f)/1000000" | bc)
-      t=$(/usr/bin/time -f "%U" $COMMAND $f 2>&1 >/dev/null)
+      t=$(/usr/bin/time -f "%e" $COMMAND $f 2>&1 >/dev/null )
       sizeafter=$(echo "scale=2;$(stat -c "%s" $f.gz)/1000000" | bc)
       ratio=$(echo "scale=2;$sizebefore/$sizeafter" | bc)
       echo size before:$sizebefore MB
