@@ -1,6 +1,5 @@
 #!/bin/bash
 
-filter='! $f == '"*Makefile"
 function benchmark {
   
   echo
@@ -10,11 +9,10 @@ function benchmark {
   echo
 
   for f in $FILES; do \
-    if [[ $filter ]]; then
-      echo
+      rm -f $f.gz
       echo current file: $f
       sizebefore=$(echo "scale=2;$(stat -c "%s" $f)/1000000" | bc)
-      t=$(/usr/bin/time -f "%U" $COMMAND $f 2>&1 >/dev/null )
+      t=$(/usr/bin/time -f "%U" $COMMAND $f 2>&1 >/dev/null)
       sizeafter=$(echo "scale=2;$(stat -c "%s" $f.gz)/1000000" | bc)
       ratio=$(echo "scale=2;$sizebefore/$sizeafter" | bc)
       echo size before:$sizebefore MB
@@ -25,30 +23,29 @@ function benchmark {
       echo speed: $speed MB/s
       rm -f $f.gz
       echo
-    fi
   done
 }
 
 rm -f corpus/*.gz
-
-PROMPT="Single threaded pigz -9 benchmarks."
-FILES='corpus/*.big'
-COMMAND='pigz/pigzn -f -k -9'
-benchmark
 
 PROMPT="Multi threaded pigz -9 benchmarks."
 FILES='corpus/*.big'
 COMMAND='pigz/pigz -f -k -9'
 benchmark
 
-PROMPT="Single threaded pigz -11 benchmarks."
+PROMPT="Single threaded pigz -9 benchmarks."
 FILES='corpus/*.big'
-COMMAND='pigz/pigzn -f -k -11'
+COMMAND='pigz/pigzn -f -k -9'
+benchmark
+
+PROMPT="Multi threaded pigz -11 benchmarks."
+FILES='corpus/*.orig'
+COMMAND='pigz/pigz -f -k -11'
 benchmark
 
 
-PROMPT="Multi threaded pigz -11 benchmarks."
-FILES='corpus/*.big'
-COMMAND='pigz/pigz -f -k -11'
+PROMPT="Single threaded pigz -11 benchmarks."
+FILES='corpus/*.orig'
+COMMAND='pigz/pigzn -f -k -11'
 benchmark
 
