@@ -1,5 +1,5 @@
 # FILES are the original files downloaded from the corpus website.
-# FILES_BIG are the files which is the combination of 12 copies of correponding FILES.
+# FILES_BIG are the files which is the combination of 10 copies of correponding FILES.
 # combination is the combination of all FILES_ORIGIN
 
 FILES := dickens mozilla mr nci ooffice osdb reymont samba sao webster xml x-ray
@@ -12,7 +12,7 @@ $(FILES):
 
 %.big: %
 	echo $(FILES_BIG)
-	for i in $$(seq 1 $(words $(FILES))); \
+	for i in $$(seq 1 10); \
 		do cat $< >> $@; \
 	done;
 
