@@ -17,4 +17,7 @@ test:
 corpus:
 	$(MAKE) -C corpus
 
+benchmark:
+	./benchmark.sh | tee benchmark.result
+
 .PHONY: all clean test corpus
