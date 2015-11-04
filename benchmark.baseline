@@ -1,0 +1,280 @@
+
+***********************************
+Multi threaded pigz -9 benchmarks.
+***********************************
+
+current file: corpus/combined
+size before:211938580 Bytes
+size after: 78351340 Bytes
+time: 2.04 seconds
+ratio: 2.70
+speed: 103.89 MB/s
+
+current file: corpus/dickens.big
+size before:101924460 Bytes
+size after: 47252428 Bytes
+time: 1.18 seconds
+ratio: 2.15
+speed: 86.37 MB/s
+
+current file: corpus/mozilla.big
+size before:512204800 Bytes
+size after: 207811761 Bytes
+time: 5.25 seconds
+ratio: 2.46
+speed: 97.56 MB/s
+
+current file: corpus/mr.big
+size before:99705640 Bytes
+size after: 38836976 Bytes
+time: 0.98 seconds
+ratio: 2.56
+speed: 101.74 MB/s
+
+current file: corpus/nci.big
+size before:335534450 Bytes
+size after: 44999454 Bytes
+time: 1.80 seconds
+ratio: 7.45
+speed: 186.40 MB/s
+
+current file: corpus/ooffice.big
+size before:61521920 Bytes
+size after: 33434178 Bytes
+time: 0.78 seconds
+ratio: 1.84
+speed: 78.87 MB/s
+
+current file: corpus/osdb.big
+size before:100856840 Bytes
+size after: 41354957 Bytes
+time: 1.02 seconds
+ratio: 2.43
+speed: 98.87 MB/s
+
+current file: corpus/reymont.big
+size before:66272020 Bytes
+size after: 23872438 Bytes
+time: 0.64 seconds
+ratio: 2.77
+speed: 103.55 MB/s
+
+current file: corpus/samba.big
+size before:216064000 Bytes
+size after: 62173364 Bytes
+time: 1.73 seconds
+ratio: 3.47
+speed: 124.89 MB/s
+
+current file: corpus/sao.big
+size before:72519440 Bytes
+size after: 56707623 Bytes
+time: 1.16 seconds
+ratio: 1.27
+speed: 62.51 MB/s
+
+current file: corpus/webster.big
+size before:414587030 Bytes
+size after: 153343103 Bytes
+time: 4.05 seconds
+ratio: 2.70
+speed: 102.36 MB/s
+
+current file: corpus/xml.big
+size before:53452800 Bytes
+size after: 11494202 Bytes
+time: 0.38 seconds
+ratio: 4.65
+speed: 140.66 MB/s
+
+current file: corpus/x-ray.big
+size before:84742400 Bytes
+size after: 62056624 Bytes
+time: 1.33 seconds
+ratio: 1.36
+speed: 63.71 MB/s
+
+
+***********************************
+Single threaded pigz -9 benchmarks.
+***********************************
+
+current file: corpus/combined
+size before:211938580 Bytes
+size after: 78351340 Bytes
+time: 7.07 seconds
+ratio: 2.70
+speed: 29.97 MB/s
+
+current file: corpus/dickens.big
+size before:101924460 Bytes
+size after: 47252428 Bytes
+time: 3.84 seconds
+ratio: 2.15
+speed: 26.54 MB/s
+
+current file: corpus/mozilla.big
+size before:512204800 Bytes
+size after: 207811761 Bytes
+time: 18.00 seconds
+ratio: 2.46
+speed: 28.45 MB/s
+
+current file: corpus/mr.big
+size before:99705640 Bytes
+size after: 38836976 Bytes
+time: 3.42 seconds
+ratio: 2.56
+speed: 29.15 MB/s
+
+current file: corpus/nci.big
+size before:335534450 Bytes
+size after: 44999454 Bytes
+time: 6.37 seconds
+ratio: 7.45
+speed: 52.67 MB/s
+
+current file: corpus/ooffice.big
+size before:61521920 Bytes
+size after: 33434178 Bytes
+time: 2.70 seconds
+ratio: 1.84
+speed: 22.78 MB/s
+
+current file: corpus/osdb.big
+size before:100856840 Bytes
+size after: 41354957 Bytes
+time: 3.55 seconds
+ratio: 2.43
+speed: 28.41 MB/s
+
+current file: corpus/reymont.big
+size before:66272020 Bytes
+size after: 23872438 Bytes
+time: 2.20 seconds
+ratio: 2.77
+speed: 30.12 MB/s
+
+current file: corpus/samba.big
+size before:216064000 Bytes
+size after: 62173364 Bytes
+time: 6.20 seconds
+ratio: 3.47
+speed: 34.84 MB/s
+
+current file: corpus/sao.big
+size before:72519440 Bytes
+size after: 56707623 Bytes
+time: 3.71 seconds
+ratio: 1.27
+speed: 19.54 MB/s
+
+current file: corpus/webster.big
+size before:414587030 Bytes
+size after: 153343103 Bytes
+time: 14.29 seconds
+ratio: 2.70
+speed: 29.01 MB/s
+
+current file: corpus/xml.big
+size before:53452800 Bytes
+size after: 11494202 Bytes
+time: 1.32 seconds
+ratio: 4.65
+speed: 40.49 MB/s
+
+current file: corpus/x-ray.big
+size before:84742400 Bytes
+size after: 62056624 Bytes
+time: 4.21 seconds
+ratio: 1.36
+speed: 20.12 MB/s
+
+
+***********************************
+Multi threaded pigz -11 benchmarks.
+***********************************
+
+current file: corpus/dickens.orig
+size before:10192446 Bytes
+size after: 3677397 Bytes
+time: 5.36 seconds
+ratio: 2.77
+speed: 1.90 MB/s
+
+current file: corpus/mozilla.orig
+size before:51220480 Bytes
+size after: 18110987 Bytes
+time: 59.75 seconds
+ratio: 2.82
+speed: .85 MB/s
+
+current file: corpus/mr.orig
+size before:9970564 Bytes
+size after: 3442215 Bytes
+time: 11.73 seconds
+ratio: 2.89
+speed: .85 MB/s
+
+current file: corpus/nci.orig
+size before:33553445 Bytes
+size after: 2746600 Bytes
+time: 126.32 seconds
+ratio: 12.21
+speed: .26 MB/s
+
+current file: corpus/ooffice.orig
+size before:6152192 Bytes
+size after: 2990310 Bytes
+time: 4.90 seconds
+ratio: 2.05
+speed: 1.25 MB/s
+
+current file: corpus/osdb.orig
+size before:10085684 Bytes
+size after: 3611440 Bytes
+time: 4.23 seconds
+ratio: 2.79
+speed: 2.38 MB/s
+
+current file: corpus/reymont.orig
+size before:6627202 Bytes
+size after: 1694811 Bytes
+time: 5.16 seconds
+ratio: 3.91
+speed: 1.28 MB/s
+
+current file: corpus/samba.orig
+size before:21606400 Bytes
+size after: 5105810 Bytes
+time: 22.97 seconds
+ratio: 4.23
+speed: .94 MB/s
+
+current file: corpus/sao.orig
+size before:7251944 Bytes
+size after: 5241952 Bytes
+time: 4.89 seconds
+ratio: 1.38
+speed: 1.48 MB/s
+
+current file: corpus/webster.orig
+size before:41458703 Bytes
+size after: 11531752 Bytes
+time: 22.97 seconds
+ratio: 3.59
+speed: 1.80 MB/s
+
+current file: corpus/xml.orig
+size before:5345280 Bytes
+size after: 627581 Bytes
+time: 7.64 seconds
+ratio: 8.51
+speed: .69 MB/s
+
+current file: corpus/x-ray.orig
+size before:8474240 Bytes
+size after: 5746111 Bytes
+time: 3.39 seconds
+ratio: 1.47
+speed: 2.49 MB/s
