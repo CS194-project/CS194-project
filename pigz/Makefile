@@ -5,11 +5,12 @@ DEBUGCFLAGS=-ggdb3 -O0 -Wall -Wextra -DDEBUG
 LDFLAGS=-lcz
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 LIB=$(dir $(mkfile_path))/../zlib
+CUDALIB=/usr/local/cuda/lib64
 ZOPFLI=zopfli/src/zopfli/
 # use gcc and gmake on Solaris
 
 pigz: pigz.o yarn.o try.o ${ZOPFLI}deflate.o ${ZOPFLI}blocksplitter.o ${ZOPFLI}tree.o ${ZOPFLI}lz77.o ${ZOPFLI}cache.o ${ZOPFLI}hash.o ${ZOPFLI}util.o ${ZOPFLI}squeeze.o ${ZOPFLI}katajainen.o
-	$(CC) -o pigz $^ -lpthread -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB)
+	$(CC) -o pigz $^ -lpthread -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB),-rpath=$(CUDALIB)
 	ln -f pigz unpigz
 debug:
 	$(MAKE) CFLAGS='$(DEBUGCFLAGS)'
@@ -41,7 +42,7 @@ ${ZOPFLI}katajainen.o: ${ZOPFLI}katajainen.c ${ZOPFLI}katajainen.h
 dev: pigz pigzt pigzn
 
 pigzt: pigzt.o yarnt.o try.o ${ZOPFLI}deflate.o ${ZOPFLI}blocksplitter.o ${ZOPFLI}tree.o ${ZOPFLI}lz77.o ${ZOPFLI}cache.o ${ZOPFLI}hash.o ${ZOPFLI}util.o ${ZOPFLI}squeeze.o ${ZOPFLI}katajainen.o
-	$(CC) -o pigzt $^ -lpthread -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB)
+	$(CC) -o pigzt $^ -lpthread -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB),-rpath=$(CUDALIB)
 
 pigzt.o: pigz.c yarn.h try.h
 	$(CC) $(CFLAGS) -c -o pigzt.o pigz.c
@@ -50,7 +51,7 @@ yarnt.o: yarn.c yarn.h
 	$(CC) $(CFLAGS) -c -o yarnt.o yarn.c
 
 pigzn: pigzn.o tryn.o ${ZOPFLI}deflate.o ${ZOPFLI}blocksplitter.o ${ZOPFLI}tree.o ${ZOPFLI}lz77.o ${ZOPFLI}cache.o ${ZOPFLI}hash.o ${ZOPFLI}util.o ${ZOPFLI}squeeze.o ${ZOPFLI}katajainen.o
-	$(CC) -o pigzn $^ -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB)
+	$(CC) -o pigzn $^ -lm -L$(LIB) $(LDFLAGS) -Wl,-rpath=$(LIB),-rpath=$(CUDALIB)
 
 pigzn.o: pigz.c try.h
 	$(CC) $(CFLAGS) -DNOTHREAD -c -o pigzn.o pigz.c
