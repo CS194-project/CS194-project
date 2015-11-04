@@ -29,23 +29,23 @@ function benchmark {
 rm -f corpus/*.gz
 
 PROMPT="Multi threaded pigz -9 benchmarks."
-FILES='corpus/*.big'
+FILES='corpus/combined corpus/*.big'
 COMMAND='pigz/pigz -f -k -9'
 benchmark
 
 PROMPT="Single threaded pigz -9 benchmarks."
-FILES='corpus/*.big'
+FILES='corpus/combined corpus/*.big'
 COMMAND='pigz/pigzn -f -k -9'
 benchmark
 
 PROMPT="Multi threaded pigz -11 benchmarks."
-FILES='corpus/*.orig'
+FILES='corpus/combined corpus/*.orig'
 COMMAND='pigz/pigz -f -k -11'
 benchmark
 
 
 PROMPT="Single threaded pigz -11 benchmarks."
-FILES='corpus/*.orig'
+FILES='corpus/combined corpus/*.orig'
 COMMAND='pigz/pigzn -f -k -11'
 benchmark
 
