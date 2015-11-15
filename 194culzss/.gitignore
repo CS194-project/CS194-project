@@ -1,0 +1,6 @@
+*.o
+culzss
+cscope.*
+~*
+\#*
+*.gz
