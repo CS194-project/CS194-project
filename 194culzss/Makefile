@@ -102,7 +102,7 @@ clean:
 		$(DEL) reference
 
 culzss: culzss.cu bitfile.c bitfile.h optlist.h optlist.c
-	nvcc -O3 -arch=sm_30 culzss.cu -c -o culzss.o
+	/usr/local/cuda/bin/nvcc -O3 -arch=sm_30 culzss.cu -c -o culzss.o
 	g++  -O3 bitfile.c -c -o bitfile2.o
 	g++  -O3 optlist.c -c -o optlist2.o
 	g++  -O3 bitfile2.o optlist2.o culzss.o -o culzss -L/usr/local/cuda/lib64 -Wl,-rpath=/usr/local/cuda/lib64 -lcudart
