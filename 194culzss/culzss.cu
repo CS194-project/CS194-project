@@ -443,7 +443,7 @@ culzss_init ()
   /* Need initial WINDOW_SIZE bytes as initial window. EXTRA BUF to avoid out
    * of bound memory error. */
   cudaHostAlloc (&host_in,
-                 sizeof (host_in) * (MAX_PROCESS_SIZE + WINDOW_SIZE +
+                 sizeof (*host_in) * (MAX_PROCESS_SIZE + WINDOW_SIZE +
                                      EXTRA_BUF), cudaHostAllocDefault);
   checkCudaError ("Allocate host_in");
   cudaMalloc (&device_in,
