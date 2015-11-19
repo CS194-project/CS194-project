@@ -58,8 +58,8 @@
 
 typedef struct
 {
-  unsigned short offset;	/* offset to start of longest match */
-  unsigned short length;	/* length of longest match */
+  unsigned short dist;	/* offset to start of longest match */
+  unsigned short len;	/* length of longest match */
 } encoded_string_t;
 
 
@@ -98,8 +98,8 @@ const int CUDA_NUM_STREAMS = (MAX_PROCESS_SIZE / CUDA_BLOCK_SIZE) + 1;
 
 /***************************************************************************/
 /* Global Variables. */
-char *host_in;
-char *device_in;
+unsigned char *host_in;
+unsigned char *device_in;
 encoded_string_t *host_encode;
 encoded_string_t *device_encode;
 cudaStream_t streams[CUDA_NUM_STREAMS];
@@ -132,12 +132,45 @@ checkCudaError (const char *msg)
     }
 }
 
+
+/*
+   input: in_g: input characters. (Also sees the description to is_firstblock)
+
+          grid_size: number of characters.
+
+          is_firstblock: If the data is the very first block of data of the
+          input_file. The in_g[0..WINDOW_SIZE) can be arbitrary trash file.
+          The actual data starts from in_g[WINDOW_SIZE] and we conpress the
+          first WINDOW_SIZE of actual data file into literal only. (no
+          compression). If not the first block, Then in_g[0..WINDOW_SIZE]
+          is some actual data. We can encoded the first WINDOW_SIZE of actual
+          data normally.
+
+   output: encode[i] == the length and distance pair of in_g[i]
+
+           exception1: encode[0..WINDOW_SIZE) are not changed. We do this
+           because we may split the data and run multiple kernels in order to
+           make GPU copy and execution overlap. Then in order to keep the ratio
+           the same, two kernels executing the connecting data has one
+           WINDOW_SIZE of data overlapped.
+           i.e. kernel 0's input is from index A to index B then kernel 1
+           processes data starting from index B-WINDOW_SIZE.
+
+           exception2: If no match found for in_g[i], then
+           we don't acutally encoded a length and distance pair,
+           but encode the string literal and diff it from length and distance
+           pair by set "dist" to 0 (dist cannot be zero in length and distance
+           pair)
+           i.e.
+           encoded[i].dist=0 and encode[i].len=(unsigned char)in_g[i].
+ */
+
 __global__ void
-lzss_kernel (const char *__restrict__ in_g,
+lzss_kernel (const unsigned char *__restrict__ in_g,
              encoded_string_t * __restrict__ encode, int grid_size,
              int is_firstblock)
 {
-  __shared__ char in[WINDOW_SIZE * 2];	/* Note that WINDOW_SIZE must be a
+  __shared__ unsigned char in[WINDOW_SIZE * 2];	/* Note that WINDOW_SIZE must be a
                                            multiple of blockDimension(1024).
                                            First half are window and second half are
                                            lookahead. */
@@ -195,16 +228,17 @@ lzss_kernel (const char *__restrict__ in_g,
                i += blockDim.x)
             {
               unsigned int hash = 0;
-              char char0 = 0;
-              char char1 = 0;
-              char char2 = 0;
-              char char3 = 0;
-              char char4 = 0;
-              char char5 = 0;
+              unsigned char char0 = in[i];
+              unsigned char char1 = 0;
+              unsigned char char2 = 0;
+              unsigned char char3 = 0;
+              unsigned char char4 = 0;
+              unsigned char char5 = 0;
               encoded_string_t match_data;
-              int match_length;
+              int match_len;
               unsigned int prev;
-              match_data.length = 0;
+              match_data.len = 0;
+              match_data.dist = 0;
 
               /* Load characters */
               if (i < end - MAX_MATCH + 1)
@@ -226,29 +260,30 @@ lzss_kernel (const char *__restrict__ in_g,
               __syncthreads ();
               prev = hashtable[hash];
               prev = prev + WINDOW_SIZE - uncodedHead;
-              match_length = 0;
+              match_len = 0;
+
               if (prev > 0
                   && prev < i - MAX_MATCH + 1
                   && i - prev <= WINDOW_SIZE && i < end - MAX_MATCH + 1)
                 {
                   int temp = 1;	/* Used to check match. */
                   temp *= (in[prev] == char0);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 1] == char1);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 2] == char2);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 3] == char3);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 4] == char4);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 5] == char5);
-                  match_length += temp;
+                  match_len += temp;
                 }
-              if (match_length > match_data.length)
+              if (match_len > match_data.len)
                 {
-                  match_data.offset = i - prev;
-                  match_data.length = match_length;
+                  match_data.dist = i - prev;
+                  match_data.len = match_len;
                 }
 
               /* Check second recent hash. */
@@ -258,29 +293,29 @@ lzss_kernel (const char *__restrict__ in_g,
 
               prev = hashtable[hash];
               prev = prev + WINDOW_SIZE - uncodedHead;
-              match_length = 0;
+              match_len = 0;
               if (prev > 0
                   && prev < i - MAX_MATCH + 1
                   && i - prev <= WINDOW_SIZE && i < end - MAX_MATCH + 1)
                 {
                   int temp = 1;	/* Used to check match. */
                   temp *= (in[prev] == char0);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 1] == char1);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 2] == char2);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 3] == char3);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 4] == char4);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 5] == char5);
-                  match_length += temp;
+                  match_len += temp;
                 }
-              if (match_length > match_data.length)
+              if (match_len > match_data.len)
                 {
-                  match_data.offset = i - prev;
-                  match_data.length = match_length;
+                  match_data.dist = i - prev;
+                  match_data.len = match_len;
                 }
 
 
@@ -291,29 +326,29 @@ lzss_kernel (const char *__restrict__ in_g,
 
               prev = hashtable[hash];
               prev = prev + WINDOW_SIZE - uncodedHead;
-              match_length = 0;
+              match_len = 0;
               if (prev > 0
                   && prev < i - MAX_MATCH + 1
                   && i - prev <= WINDOW_SIZE && i < end - MAX_MATCH + 1)
                 {
                   int temp = 1;	/* Used to check match. */
                   temp *= (in[prev] == char0);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 1] == char1);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 2] == char2);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 3] == char3);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 4] == char4);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 5] == char5);
-                  match_length += temp;
+                  match_len += temp;
                 }
-              if (match_length > match_data.length)
+              if (match_len > match_data.len)
                 {
-                  match_data.offset = i - prev;
-                  match_data.length = match_length;
+                  match_data.dist = i - prev;
+                  match_data.len = match_len;
                 }
 
               /* Check forth recent hash. */
@@ -323,29 +358,29 @@ lzss_kernel (const char *__restrict__ in_g,
 
               prev = hashtable[hash];
               prev = prev + WINDOW_SIZE - uncodedHead;
+              match_len = 0;
               if (prev > 0
                   && prev < i - MAX_MATCH + 1 && i - prev <= WINDOW_SIZE
                   && i < end - MAX_MATCH + 1)
                 {
                   int temp = 1;	/* Used to check match. */
-                  match_length = 0;
                   temp *= (in[prev] == char0);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 1] == char1);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 2] == char2);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 3] == char3);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 4] == char4);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 5] == char5);
-                  match_length += temp;
+                  match_len += temp;
                 }
-              if (match_length > match_data.length)
+              if (match_len > match_data.len)
                 {
-                  match_data.offset = i - prev;
-                  match_data.length = match_length;
+                  match_data.dist = i - prev;
+                  match_data.len = match_len;
                 }
 
               /* Update recent hash */
@@ -365,38 +400,41 @@ lzss_kernel (const char *__restrict__ in_g,
 
               prev = hashtable[hash];
               prev = prev + WINDOW_SIZE - uncodedHead;
+              match_len = 0;
               if (prev > 0
                   && prev < i - MAX_MATCH + 1 && i - prev <= WINDOW_SIZE
                   && i < end - MAX_MATCH + 1)
                 {
                   int temp = 1;	/* Used to check match. */
-                  match_length = 0;
                   temp *= (in[prev] == char0);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 1] == char1);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 2] == char2);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 3] == char3);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 4] == char4);
-                  match_length += temp;
+                  match_len += temp;
                   temp *= (in[prev + 5] == char5);
-                  match_length += temp;
+                  match_len += temp;
                 }
-              if (match_length > match_data.length)
+
+              if (match_len > match_data.len)
                 {
-                  match_data.offset = i - prev;
-                  match_data.length = match_length;
+                  match_data.dist = i - prev;
+                  match_data.len = match_len;
                 }
 
               /* Don't compress first block because initial window can be arbitrary. */
-              if (blockIdx.x == 0 && uncodedHead == WINDOW_SIZE
-                  && is_firstblock)
+              if ((blockIdx.x == 0 && uncodedHead == WINDOW_SIZE
+                  && is_firstblock) || match_data.len < MIN_MATCH)
                 {
-                  match_data.length = 0;
+                  match_data.dist = 0;
+                  match_data.len = (unsigned short)char0; /* Store string literal in
+                match_data.len. (We know its a literal by match_data.dist
+                == 0) */
                 }
-
               /* Done at this position. Store to global memory. */
               if (i < end)
                 {
@@ -438,7 +476,7 @@ culzss_init ()
   /* Need initial WINDOW_SIZE bytes as initial window. EXTRA BUF to avoid out
    * of bound memory error. */
   cudaHostAlloc (&host_in,
-                 sizeof (host_in) * (MAX_PROCESS_SIZE + WINDOW_SIZE +
+                 sizeof (*host_in) * (MAX_PROCESS_SIZE + WINDOW_SIZE +
                                      EXTRA_BUF), cudaHostAllocDefault);
   checkCudaError ("Allocate host_in");
   cudaMalloc (&device_in,
@@ -597,7 +635,7 @@ do_work (FILE * fpIn, FILE * fpOut)
                                                            1) * WINDOW_SIZE);
           cudaStreamSynchronize(streams[stream]);
           for (int j = i+WINDOW_SIZE; j < i+size;
-               j += matchData.length)
+               j += (matchData.dist==0?1:matchData.len))
             {
               /*if (!gpu_done && cudaEventQuery(stop) == cudaSuccess)
                 {
@@ -607,36 +645,35 @@ do_work (FILE * fpIn, FILE * fpOut)
                   total_compute_milliseconds += milliseconds;
                   }*/
               matchData = host_encode[j];
-              char c = host_in[j];
 
-              if (matchData.length < MIN_MATCH)
+              if (matchData.dist == 0) /* In this case, matchData.len
+                                            contains the character literal. */
                 {
                   /* not long enough match.  write uncoded flag and character */
                   BitFilePutBit (UNCODED, bfpOut);
-                  BitFilePutChar (c, bfpOut);
-                  matchData.length = 1;	/* Needed to not in the infinite loop. */
+                  BitFilePutChar (((char)matchData.len), bfpOut);
                 }
               else
                 {
                   /* To convert to Dippersion lzss format. */
-                  matchData.offset = Wrap (dipperstein_lzss_uncodedHead
+                  unsigned short dist = Wrap (dipperstein_lzss_uncodedHead
                                            + WINDOW_SIZE -
-                                           matchData.offset, WINDOW_SIZE);
+                                           matchData.dist, WINDOW_SIZE);
 
                   unsigned int adjustedLen;
 
-                  /* adjust the length of the match so minimun encoded len is 0 */
-                  adjustedLen = matchData.length - MIN_MATCH;
+                  /* adjust the len of the match so minimun encoded len is 0 */
+                  adjustedLen = matchData.len - MIN_MATCH;
 
-                  /* match length > MAX_UNCODED.  Encode as offset and length. */
+                  /* match len > MAX_UNCODED.  Encode as dist and len. */
                   BitFilePutBit (ENCODED, bfpOut);
-                  BitFilePutBitsNum (bfpOut, &matchData.offset, WINDOW_BITS,
+                  BitFilePutBitsNum (bfpOut, &dist, WINDOW_BITS,
                                      sizeof (unsigned short));
                   BitFilePutBitsNum (bfpOut, &adjustedLen, LENGTH_BITS,
                                      sizeof (unsigned short));
                 }
               dipperstein_lzss_uncodedHead = Wrap (dipperstein_lzss_uncodedHead
-                                                   + matchData.length,
+                                                   + (matchData.dist==0?1:matchData.len),
                                                    WINDOW_SIZE);
             }
         }
