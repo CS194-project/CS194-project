@@ -52,36 +52,6 @@
 #include "deflate.h"
 #include "deflateCuda.h"
 
-
-
-
-
-
-/***************************************************************************
- *                          CUDA INCLUDED FILES
- ***************************************************************************/
-#include <stdio.h>
-#include <stdlib.h>
-#include <time.h>
-#include <string.h>
-#include <sys/time.h>
-#include <errno.h>
-#include <thrust/transform.h>
-#include <thrust/functional.h>
-#include <thrust/execution_policy.h>
-#include <thrust/host_vector.h>
-#include <thrust/device_vector.h>
-#include <assert.h>
-#include <cuda.h>
-#include <limits.h>
-
-
-
-
-
-
-
-
 const char deflate_copyright[] =
   " deflate 1.2.8 Copyright 1995-2013 Jean-loup Gailly and Mark Adler ";
 /*
@@ -361,34 +331,6 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
   s->level = level;
   s->strategy = strategy;
   s->method = (Byte) method;
-
-  /** CUDA INITIALIZATION */
-
-  for (int i = 0; i < CUDA_NUM_STREAMS; i++)
-    cudaStreamCreate (&s->streams[i]);
-  checkCudaError ("Cuda Create stream.");
-
-  /* Need initial WINDOW_SIZE bytes as initial window. EXTRA BUF to avoid out
-   * of bound memory error. */
-  cudaHostAlloc (&s->host_in,
-                 sizeof (*s->host_in) * (MAX_PROCESS_SIZE + WINDOW_SIZE +
-                                     EXTRA_BUF), cudaHostAllocDefault);
-  checkCudaError ("Allocate host_in");
-  cudaMalloc (&s->device_in,
-              sizeof (*s->device_in) * (MAX_PROCESS_SIZE + WINDOW_SIZE +
-                                     EXTRA_BUF));
-  checkCudaError ("Allocate device_in");
-
-  cudaHostAlloc (&s->host_encode,
-                 sizeof (*s->host_encode) * (MAX_PROCESS_SIZE + WINDOW_SIZE +
-                                          EXTRA_BUF), cudaHostAllocDefault);
-  checkCudaError ("Allocate host_encode");
-  cudaMalloc (&s->device_encode,
-              sizeof (*s->device_encode) * (MAX_PROCESS_SIZE + WINDOW_SIZE +
-                                         EXTRA_BUF));
-  checkCudaError ("Allocate device_in");
-
-  /** END CUDA INITIALIZATION */
 
   return deflateReset (strm);
 }
@@ -1817,194 +1759,99 @@ deflate_fast (deflate_state * s, int flush)
   IPos hash_head;		/* head of the hash chain */
   int bflush;			/* set if current block must be flushed */
 
-  /* CUDA initialize */
-  culzss_init()
-
-  /* Initial buffer */
-
-  float total_compute_milliseconds = 0;
-  float total_output_milliseconds = 0;
-  int total_remaining = total_size; //FIXME
-  while (total_remaining > 0)
+  for (;;)
     {
-      int processing_size = std::min (total_remaining, MAX_PROCESS_SIZE);
-      total_remaining -= processing_size; //FIXME
+      /* Make sure that we always have enough lookahead, except
+       * at the end of the input file. We need MAX_MATCH bytes
+       * for the next match, plus MIN_MATCH bytes to insert the
+       * string following the next match.
+       */
+      if (s->lookahead < MIN_LOOKAHEAD)
+	{
+	  fill_window (s);
+	  if (s->lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH)
+	    {
+	      return need_more;
+	    }
+	  if (s->lookahead == 0)
+	    break;		/* flush the current block */
+	}
 
-      fread (host_in + WINDOW_SIZE, 1, processing_size, fpIn);
-      checkCPUError ("read input file");
+      /* Insert the string window[strstart .. strstart+2] in the
+       * dictionary, and set hash_head to the head of the hash chain:
+       */
+      hash_head = NIL;
+      if (s->lookahead >= MIN_MATCH)
+	{
+	  INSERT_STRING (s, s->strstart, hash_head);
+	}
 
-      cudaEvent_t gpu_start, cpu_start,  stop;
-      cudaEventCreate (&gpu_start);
-      cudaEventCreate (&cpu_start);
-      cudaEventCreate (&stop);
+      /* Find the longest match, discarding those <= prev_length.
+       * At this point we have always match_length < MIN_MATCH
+       */
+      if (hash_head != NIL && s->strstart - hash_head <= MAX_DIST (s))
+	{
+	  /* To simplify the code, we prevent matches with the string
+	   * of window index 0 (in particular we have to avoid a match
+	   * of the string with itself at the start of the input file).
+	   */
+	  s->match_length = longest_match (s, hash_head);
+	  /* longest_match() sets match_start */
+	}
+      if (s->match_length >= MIN_MATCH)
+	{
+	  check_match (s, s->strstart, s->match_start, s->match_length);
 
-      cudaEventRecord (gpu_start);
+	  _tr_tally_dist (s, s->strstart - s->match_start,
+			  s->match_length - MIN_MATCH, bflush);
 
-      /* Don't compress first block */
-      int is_firstblock = 1;
+	  s->lookahead -= s->match_length;
 
-      /* Copy data into GPU */
-      for (int i = 0, block = 0, stream = 0;
-           i < processing_size + WINDOW_SIZE;
-           i += (CUDA_BLOCK_SIZE - WINDOW_SIZE) * CUDA_NUM_BLOCKS, block =
-             (block + 1) % CUDA_NUM_BLOCKS, stream =
-             (stream + 1) % CUDA_NUM_STREAMS)
-        {
-          /* Don't copy initial window, which has been copied by previous kernel. */
-          /* Note: Not sure if the ordering is correct if GPU has two copy engines. */
-          int size =
-            std::min (processing_size + WINDOW_SIZE - i,
-                      CUDA_BLOCK_SIZE * CUDA_NUM_BLOCKS - (CUDA_NUM_BLOCKS -
-                                                           1) * WINDOW_SIZE);
-          cudaMemcpyAsync (device_in + i + WINDOW_SIZE,
-                           host_in + i + WINDOW_SIZE,
-                           sizeof (*host_in) * max (size - WINDOW_SIZE, 0),
-                           cudaMemcpyHostToDevice, streams[stream]);
-          checkCudaError ("copy from host_in to device_in");
-        }
-
-      /* Call kernel */
-      for (int i = 0, block = 0, stream = 0;
-           i < processing_size + WINDOW_SIZE;
-           i += (CUDA_BLOCK_SIZE - WINDOW_SIZE) * CUDA_NUM_BLOCKS, block =
-             (block + 1) % CUDA_NUM_BLOCKS, stream =
-             (stream + 1) % CUDA_NUM_STREAMS)
-        {
-          int size =
-            std::min (processing_size + WINDOW_SIZE - i,
-                      CUDA_BLOCK_SIZE * CUDA_NUM_BLOCKS - (CUDA_NUM_BLOCKS -
-                                                           1) * WINDOW_SIZE);
-          lzss_kernel <<< CUDA_NUM_BLOCKS, 1024, 0,
-            streams[stream] >>> (device_in + i, device_encode + i, size,
-                                 is_firstblock);
-          checkCudaError ("launch lzss_kernel.");
-          is_firstblock = 0;
-        }
-
-      /* Copy result to CPU. */
-      for (int i = 0, block = 0, stream = 0;
-           i < processing_size + WINDOW_SIZE;
-           i += (CUDA_BLOCK_SIZE - WINDOW_SIZE) * CUDA_NUM_BLOCKS, block =
-             (block + 1) % CUDA_NUM_BLOCKS, stream =
-             (stream + 1) % CUDA_NUM_STREAMS)
-        {
-          /* Don't copy initial window, which has been copied by previous kernel. */
-          /* Note: Not sure if the ordering is correct if GPU has two copy engines. */
-          int size =
-            std::min (processing_size + WINDOW_SIZE - i,
-                      CUDA_BLOCK_SIZE * CUDA_NUM_BLOCKS - (CUDA_NUM_BLOCKS -
-                                                           1) * WINDOW_SIZE);
-
-          cudaMemcpyAsync (host_encode + i + WINDOW_SIZE,
-                           device_encode + i + WINDOW_SIZE,
-                           sizeof (*device_encode) * std::max (size -
-                                                               WINDOW_SIZE,
-                                                               0),
-                           cudaMemcpyDeviceToHost, streams[stream]);
-          checkCudaError ("Copy from device_on to host_in.");
-        }
-
-      checkCudaError ("Copy from device_encode to host_encode. ");
-      cudaEventRecord (stop);
-      // int gpu_done = 0;
-
-      /* Record CPU output time. */
-      cudaEventRecord (cpu_start);
-
-      /* Output results */
-      int dipperstein_lzss_uncodedHead = 0; /* To convert to Dipperstein lzss
-                                             * format. */
-      encoded_string_t matchData;
-
-      /* CPU and GPU overlapping */
-      for (int i = 0, stream = 0; i < processing_size + WINDOW_SIZE;
-           i += (CUDA_BLOCK_SIZE - WINDOW_SIZE) * CUDA_NUM_BLOCKS
-             , stream = (stream + 1) % CUDA_NUM_STREAMS)
-        {
-          int size = std::min (processing_size + WINDOW_SIZE - i,
-                      CUDA_BLOCK_SIZE * CUDA_NUM_BLOCKS - (CUDA_NUM_BLOCKS -
-                                                           1) * WINDOW_SIZE);
-          cudaStreamSynchronize(streams[stream]);
-          for (int j = i+WINDOW_SIZE; j < i+size;
-               j += matchData.length)
-            {
-              /*if (!gpu_done && cudaEventQuery(stop) == cudaSuccess)
-                {
-                  float milliseconds;
-                  gpu_done = 1;
-                  cudaEventElapsedTime (&milliseconds, gpu_start, stop);
-                  total_compute_milliseconds += milliseconds;
-                  }*/
-              matchData = host_encode[j];
-              char c = host_in[j];
-
-              if (matchData.length < MIN_MATCH)
-                {
-                  /* not long enough match.  write uncoded flag and character */
-                  BitFilePutBit (UNCODED, bfpOut);
-                  BitFilePutChar (c, bfpOut);
-                  matchData.length = 1; /* Needed to not in the infinite loop. */
-                }
-              else
-                {
-                  /* To convert to Dippersion lzss format. */
-                  matchData.offset = Wrap (dipperstein_lzss_uncodedHead
-                                           + WINDOW_SIZE -
-                                           matchData.offset, WINDOW_SIZE);
-
-                  unsigned int adjustedLen;
-
-                  /* adjust the length of the match so minimun encoded len is 0 */
-                  adjustedLen = matchData.length - MIN_MATCH;
-
-                  /* match length > MAX_UNCODED.  Encode as offset and length. */
-                  BitFilePutBit (ENCODED, bfpOut);
-                  BitFilePutBitsNum (bfpOut, &matchData.offset, WINDOW_BITS,
-                                     sizeof (unsigned short));
-                  BitFilePutBitsNum (bfpOut, &adjustedLen, LENGTH_BITS,
-                                     sizeof (unsigned short));
-                }
-              dipperstein_lzss_uncodedHead = Wrap (dipperstein_lzss_uncodedHead
-                                                   + matchData.length,
-                                                   WINDOW_SIZE);
-            }
-        }
-      float milliseconds;
-      cudaEventRecord (stop);
-      cudaEventSynchronize (stop);
-      cudaEventElapsedTime (&milliseconds, cpu_start, stop);
-      total_output_milliseconds += milliseconds;
-
-      cudaEventDestroy (gpu_start);
-      cudaEventDestroy (cpu_start);
-      cudaEventDestroy (stop);
+	  /* Insert new strings in the hash table only if the match length
+	   * is not too large. This saves time but degrades compression.
+	   */
+#ifndef FASTEST
+	  if (s->match_length <= s->max_insert_length &&
+	      s->lookahead >= MIN_MATCH)
+	    {
+	      s->match_length--;	/* string at strstart already in table */
+	      do
+		{
+		  s->strstart++;
+		  INSERT_STRING (s, s->strstart, hash_head);
+		  /* strstart never exceeds WSIZE-MAX_MATCH, so there are
+		   * always MIN_MATCH bytes ahead.
+		   */
+		}
+	      while (--s->match_length != 0);
+	      s->strstart++;
+	    }
+	  else
+#endif
+	    {
+	      s->strstart += s->match_length;
+	      s->match_length = 0;
+	      s->ins_h = s->window[s->strstart];
+	      UPDATE_HASH (s, s->ins_h, s->window[s->strstart + 1]);
+#if MIN_MATCH != 3
+	      Call UPDATE_HASH () MIN_MATCH - 3 more times
+#endif
+		/* If lookahead < MIN_MATCH, ins_h is garbage, but it does not
+		 * matter since it will be recomputed at next deflate call.
+		 */
+	    }
+	}
+      else
+	{
+	  /* No match, output a literal byte */
+	  Tracevv ((stderr, "%c", s->window[s->strstart]));
+	  _tr_tally_lit (s, s->window[s->strstart], bflush);
+	  s->lookahead--;
+	  s->strstart++;
+	}
+      if (bflush)
+	FLUSH_BLOCK (s, 0);
     }
-
-  BitFileToFILE (bfpOut);
-  printf ("No IO time: %f ms, No IO speed: %f MB/s\n",
-          total_compute_milliseconds,
-          total_size / total_compute_milliseconds / 1e3);
-  printf ("Output time: %f ms, No IO speed: %f MB/s\n",
-          total_output_milliseconds,
-          total_size / total_output_milliseconds / 1e3);
-
-
-  /** Iterate through buffer */
-  unsigned short first, second;
-  for (int i = 0; i < n; i++) {
-    first = host_encode[i].dist
-    second = host_encode[i].len; //FIXME
-    if (first == 0) {
-      _tr_tally_lit(s, first, bflush);
-    } else {
-      _tr_tally_dist(s, first, second, bflush);
-    }
-  } // There is some code in original file (line 1849) that we might need to add
-
-
-
-
-
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   if (flush == Z_FINISH)
     {

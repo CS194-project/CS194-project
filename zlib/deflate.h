@@ -14,6 +14,9 @@
 #define DEFLATE_H
 
 #include "zutil.h"
+#include "culzss.h"
+#include <cuda.h>
+#include <cuda_runtime.h>
 
 /* define NO_GZIP when compiling if you want to disable gzip header and
    trailer creation by deflate().  NO_GZIP would be used to avoid linking in
@@ -59,51 +62,6 @@
 #define BUSY_STATE   113
 #define FINISH_STATE 666
 /* Stream status */
-
-
-/***************************************************************************
- *                         CUDA GLOBAL VARIABLES
- ***************************************************************************/
-
-typedef struct
-{
-  unsigned short offset;  /* offset to start of longest match */
-  unsigned short length;  /* length of longest match */
-} encoded_string_t;
-
-
-const int WINDOW_BITS = 12;
-const int WINDOW_SIZE = (1 << WINDOW_BITS);
-
-const int HASH_SHIFT = 5;
-const int HASH_BITS = 13; /* HASH_SHIFT * MIN_MATCH >= HASH_BITS. */
-const int HASH_SIZE = (1 << HASH_BITS);
-const int HASH_MASK = (HASH_SIZE - 1);
-
-const int LENGTH_BITS = 2;
-const int MIN_MATCH = 3;
-const int MAX_MATCH = (1 << LENGTH_BITS) + MIN_MATCH - 1; /* 6  */
-
-const int MAX_PROCESS_SIZE = (16 * 1024 * 1024);  /* Process 16M at one one. */
-const int EXTRA_BUF = (2 * WINDOW_SIZE);  /* Extra BUF to avoid memory out of
-                                             * bound. */
-
-const int UNCODED = 1;
-const int ENCODED = 0;
-
-const int CUDA_BLOCK_SIZE = (1 * 1024 * 1024);  /* Size of bytes processed per kernel
-                                                   launch. */
-const int CUDA_NUM_BLOCKS = 1;  /* Max 4 blocks in GT740 if we run 1024 threads
-                                   in each block. One kernel only runs in block
-                                   in order to overlap kernel copy and execution. */
-
-/* Number of streams. One stream must have a one-to-one relationship to a
-   kernel instance. */
-const int CUDA_NUM_STREAMS = (MAX_PROCESS_SIZE / CUDA_BLOCK_SIZE) + 1;
-
-
-/****************************************************************************/
-
 
 
 /* Data structure describing a single value and its code string. */
@@ -315,12 +273,21 @@ typedef struct internal_state {
      * updated to the new high water mark.
      */
 
+
+    /* CULZSS stuffs. */
+
+    unsigned char *host_in;
+    unsigned char *device_in;
+    culzss_encoded_string_t *host_encode;
+    culzss_encoded_string_t *device_encode;
+    cudaStream_t streams[CULZSS_CUDA_NUM_STREAMS];
+
 } FAR deflate_state;
 
 /* Output a byte on the stream.
  * IN assertion: there is enough room in pending_buf.
  */
-#define put_byte(s, c) {s->pending_buf[s->pending++] = (c);}
+#define put_byte(s, c) {s->pending_buf[s->pending++] == (c);}
 
 
 #define MIN_LOOKAHEAD (MAX_MATCH+MIN_MATCH+1)
