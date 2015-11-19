@@ -132,6 +132,39 @@ checkCudaError (const char *msg)
     }
 }
 
+
+/*
+   input: in_g: input characters. (Also sees the description to is_firstblock)
+
+          grid_size: number of characters.
+
+          is_firstblock: If the data is the very first block of data of the
+          input_file. The in_g[0..WINDOW_SIZE) can be arbitrary trash file.
+          The actual data starts from in_g[WINDOW_SIZE] and we conpress the
+          first WINDOW_SIZE of actual data file into literal only. (no
+          compression). If not the first block, Then in_g[0..WINDOW_SIZE]
+          is some actual data. We can encoded the first WINDOW_SIZE of actual
+          data normally.
+
+   output: encode[i] == the length and distance pair of in_g[i]
+
+           exception1: encode[0..WINDOW_SIZE) are not changed. We do this
+           because we may split the data and run multiple kernels in order to
+           make GPU copy and execution overlap. Then in order to keep the ratio
+           the same, two kernels executing the connecting data has one
+           WINDOW_SIZE of data overlapped.
+           i.e. kernel 0's input is from index A to index B then kernel 1
+           processes data starting from index B-WINDOW_SIZE.
+
+           exception2: If no match found for in_g[i], then
+           we don't acutally encoded a length and distance pair,
+           but encode the string literal and diff it from length and distance
+           pair by set "dist" to 0 (dist cannot be zero in length and distance
+           pair)
+           i.e.
+           encoded[i].dist=0 and encode[i].len=(unsigned char)in_g[i].
+ */
+
 __global__ void
 lzss_kernel (const unsigned char *__restrict__ in_g,
              encoded_string_t * __restrict__ encode, int grid_size,
