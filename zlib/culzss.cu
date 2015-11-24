@@ -40,8 +40,10 @@ void
 culzss_init (deflate_state *s)
 {
   for (int i = 0; i < CULZSS_CUDA_NUM_STREAMS; i++)
-    cudaStreamCreate (&s->streams[i]);
-  checkCudaError ("Cuda Create stream.");
+    {
+      cudaStreamCreate (&(s->streams[i]));
+      checkCudaError ("Cuda Create stream.");
+    }
 
   /* Need initial WINDOW_SIZE bytes as initial window. EXTRA BUF to avoid out
    * of bound memory error. */
@@ -69,23 +71,29 @@ void
 culzss_destroy (deflate_state *s)
 {
   /* Clean up */
+
   for (int i = 0; i < CULZSS_CUDA_NUM_STREAMS; i++)
     {
-      cudaStreamDestroy (s->streams[i]);
+      if (s->streams[i] != NULL)
+        cudaStreamDestroy (s->streams[i]);
       s->streams[i] = NULL;
-    }
+      }
 
-  cudaFree (s->device_in);
+  if (s->device_in != NULL)
+    cudaFree (s->device_in);
   s->device_in = NULL;
 
-  cudaFree (s->device_encode);
+  if (s->device_encode != NULL)
+    cudaFree (s->device_encode);
   s->device_encode = NULL;
 
-  cudaFreeHost (s->host_in);
+  if (s->host_in != NULL)
+    cudaFreeHost (s->host_in);
   s->host_in = NULL;
 
-  cudaFreeHost (s->host_encode);
-  s->host_encode = NULL;
+  if (s->host_in != NULL)
+    cudaFreeHost (s->host_encode);
+    s->host_encode = NULL;
 }
 
 __global__ void

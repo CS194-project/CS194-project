@@ -50,7 +50,7 @@
 /* @(#) $Id$ */
 
 #include "deflate.h"
-#include "deflateCuda.h"
+#include "culzss.h"
 
 const char deflate_copyright[] =
   " deflate 1.2.8 Copyright 1995-2013 Jean-loup Gailly and Mark Adler ";
@@ -293,6 +293,8 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
     return Z_MEM_ERROR;
   strm->state = (struct internal_state FAR *) s;
   s->strm = strm;
+
+  culzss_init (s); /* Initialize CULZSS stuff. */
 
   s->wrap = wrap;
   s->gzhead = Z_NULL;
@@ -1078,6 +1080,8 @@ deflateEnd (z_streamp strm)
   TRY_FREE (strm, strm->state->prev);
   TRY_FREE (strm, strm->state->window);
 
+  culzss_destroy (strm->state);
+
   ZFREE (strm, strm->state);
   strm->state = Z_NULL;
 
@@ -1296,7 +1300,7 @@ longest_match (deflate_state * s, IPos cur_match)
    */
   Posf *prev = s->prev;
   uInt wmask = s->w_mask;
-  
+
   register Bytef *strend = s->window + s->strstart + MAX_MATCH;
   register Byte scan_end1 = scan[best_len - 1];
   register Byte scan_end = scan[best_len];
