@@ -194,22 +194,23 @@ placebo $(SHAREDLIBV): $(PIC_OBJS) libcz.a
 	rmdir objs
 
 example$(EXE): example.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ example.o $(TEST_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ example.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -Wl,-rpath=$(CUDA_LIB),-rpath=.
 
 minigzip$(EXE): minigzip.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ minigzip.o $(TEST_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ minigzip.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -Wl,-rpath=$(CUDA_LIB),-rpath=.
 
 examplesh$(EXE): example.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart
+	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB),-rpath=.
 
 minigzipsh$(EXE): minigzip.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart
+	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB),-rpath=.
+
 
 example64$(EXE): example64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB),-rpath=.
 
 minigzip64$(EXE): minigzip64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ minigzip64.o $(TEST_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ minigzip64.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB),-rpath=.
 
 install-libs: $(LIBS)
 	if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi
