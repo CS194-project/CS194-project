@@ -3843,7 +3843,8 @@ local void defaults(void)
 #else
     g.procs = nprocs(8);
 #endif
-    g.block = 131072UL;             /* 128K */
+    g.block = (12*1024*1024);       /* 12MB. Changed by CULZSS. Need large
+                                       block size to take advantage of GPU.  */
     g.rsync = 0;                    /* don't do rsync blocking */
     g.setdict = 1;                  /* initialize dictionary each thread */
     g.verbosity = 1;                /* normal message level */
@@ -4011,7 +4012,10 @@ local int option(char *arg)
 
         if (get == 1) {
             n = num(arg);
-            g.block = n << 10;                  /* chunk size */
+            g.block = n << 15;                  /* chunk size. Changed by
+                                                   CULZSS. Need large block
+                                                   size to take advantage of
+                                                   GPU. */
             if (g.block < DICT)
                 throw(EINVAL, "block size too small (must be >= 32K)");
             if (n != g.block >> 10 ||
