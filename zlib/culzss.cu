@@ -88,6 +88,7 @@ culzss_destroy (deflate_state *s)
   s->host_encode = NULL;
 }
 
+
 __global__ void
 lzss_kernel (const unsigned char *__restrict__ in_g,
              culzss_encoded_string_t * __restrict__ encode, int grid_size,
@@ -391,16 +392,15 @@ lzss_kernel (const unsigned char *__restrict__ in_g,
 
 /* deflate_state must have been initialized. */
 /* TODO. Specify size. */
-void
-culzss_longest_match (deflate_state *s)
+int culzss_longest_match (deflate_state *s, int size)
 {
-  int size = 0; /* TODO */
+  //int size = 0; /* TODO */
   int is_firstblock = 1; /* TODO. Change it to improve compression ratio. */
-
+  int match_length = sizeof (*s->host_in) * max (size - CULZSS_WINDOW_SIZE, 0);
       /* Don't need to  copy and compress initial winodw */
   cudaMemcpyAsync (s->device_in + CULZSS_WINDOW_SIZE,
                        s->host_in+CULZSS_WINDOW_SIZE,
-                   sizeof (*s->host_in) * max (size - CULZSS_WINDOW_SIZE, 0),
+                   match_length,
                    cudaMemcpyHostToDevice, NULL);
   checkCudaError ("copy from host_in to device_in");
 
@@ -411,7 +411,7 @@ culzss_longest_match (deflate_state *s)
 
   cudaMemcpyAsync (s->host_encode + CULZSS_WINDOW_SIZE,
                    s->device_encode + CULZSS_WINDOW_SIZE,
-                   sizeof (*s->device_encode) * std::max (size -CULZSS_WINDOW_SIZE,  0),
+                   match_length,
                    cudaMemcpyDeviceToHost, NULL);
   checkCudaError ("Copy from device_on to host_in.");
 }
