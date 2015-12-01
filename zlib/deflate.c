@@ -295,9 +295,9 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
     return Z_MEM_ERROR;
   strm->state = (struct internal_state FAR *) s;
   s->strm = strm;
-
-  //culzss_init (s); /* Initialize CULZSS stuff. */
-
+#ifdef CS194CULZSS
+  culzss_init (s); /* Initialize CULZSS stuff. */
+#endif
   s->wrap = wrap;
   s->gzhead = Z_NULL;
   s->w_bits = windowBits;
@@ -1081,9 +1081,9 @@ deflateEnd (z_streamp strm)
   TRY_FREE (strm, strm->state->head);
   TRY_FREE (strm, strm->state->prev);
   TRY_FREE (strm, strm->state->window);
-
-  //culzss_destroy (strm->state);
-
+#ifdef CS194CULZSS
+  culzss_destroy (strm->state);
+#endif
   ZFREE (strm, strm->state);
   strm->state = Z_NULL;
 
@@ -1755,9 +1755,43 @@ deflate_stored (deflate_state * s, int flush)
 #ifdef CS194CULZSS
 deflate_fast (deflate_state * s, int flush)
 {
-  IPos hash_head;		/* head of the hash chain */
   int bflush;			/* set if current block must be flushed */
+  int is_firstblock = 0;
+  if (s->strm->total_in == 0)
+    is_firstblock = 1;
+  //copy block to host_in
+  for(int i=0; i<s->strm->avail_in; i++)
+  {
+    s->host_in[i] = s->strm->next_in[i];
+  }
+  //TODO: put the kernel inside a loop if size > CULZSS_MAX_PROCESS_SIZE
+  culzss_longest_match (*s, s->strm->avail_in, is_firstblock);
+  //s->last_lit = 0 from the beginning
+  for(; s->last_lit<s->strm->avail_in; s->last_lit++)
+  {
+    if(i < CULZSS_WINDOW_SIZE)
+    {
+      _tr_tally_lit (s, s->strm->next_in[i], bflush);
+      s->strstart++;
+    }
+    else{
+      if(s->host_encode==0)
+      {
+        _tr_tally_lit (s, s->strm->next_in[i], bflush);
+        s->strstart++;
+      }
+      else
+      {
+        _tr_tally_dist (s, s->host_encode[i]->dist,
+			  s->host_encode[i]->len, bflush);
+		s->strstart += s->host_encode[i]->len;//TODO: verify
 
+      }
+    }
+    if (bflush)
+	  FLUSH_BLOCK (s, 0);
+  }
+  for(int i=CULZSS_WINDOW_SIZE)
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   if (flush == Z_FINISH)
     {
@@ -1782,8 +1816,6 @@ deflate_fast (deflate_state * s, int flush)
   IPos hash_head;		/* head of the hash chain */
   int bflush;			/* set if current block must be flushed */
 
-  printf("deflate fast available in size: %lu\n",s->strm->avail_in);
-  printf("flush: %d\n",flush);
   for (;;)
     {
       /* Make sure that we always have enough lookahead, except
