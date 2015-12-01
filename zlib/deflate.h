@@ -15,6 +15,8 @@
 
 #include "zutil.h"
 #include "culzss.h"
+#include <stdio.h> //printf
+#include <stdlib.h> //calloc, system
 #include <cuda.h>
 #include <cuda_runtime.h>
 

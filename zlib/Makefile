@@ -18,13 +18,16 @@
 ifdef ENABLE_CUDA
 LONGEST_MATCH_CUDA:='-DLONGEST_MATCH_CUDA=1'
 endif
+ifdef CS194CULZSS
+CS194CULZSS:='-DCS194CULZSS=1'
+endif
 CC=g++
 NVCCPATH=/usr/local/cuda/bin
 NVCC=$(NVCCPATH)/nvcc
-CFLAGS?=-O2 -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(LONGEST_MATCH_CUDA) -DFASTEST
-NVCFLAGS?=-O2 -D_LARGEFILE64_SOURCE=1 $(LONGEST_MATCH_CUDA) -DFASTEST
-DEBUGCFLAGS=-O0 -ggdb3 -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(LONGEST_MATCH_CUDA) -DFASTEST
-DEBUGNVCFLAGS=-O0 -g -G -Xcompiler -ggdb3  -D_LARGEFILE64_SOURCE=1 $(LONGEST_MATCH_CUDA) -DFASTEST
+CFLAGS?=-O2 -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(LONGEST_MATCH_CUDA) $(CS194CULZSS) -DFASTEST
+NVCFLAGS?=-O2 -D_LARGEFILE64_SOURCE=1 $(LONGEST_MATCH_CUDA) $(CS194CULZSS) -DFASTEST
+DEBUGCFLAGS=-O0 -ggdb3 -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(LONGEST_MATCH_CUDA) $(CS194CULZSS) -DFASTEST
+DEBUGNVCFLAGS=-O0 -g -G -Xcompiler -ggdb3  -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(LONGEST_MATCH_CUDA) $(CS194CULZSS) -DFASTEST
 
 CUDA_LIB=/usr/local/cuda/lib64
 CUDA_INCLUDE=/usr/local/cuda/include
@@ -35,8 +38,8 @@ CUDA_INCLUDE=/usr/local/cuda/include
 
 SFLAGS?=-fPIC -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE)
 NVSFLAGS?=-Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
-DEBUGSFLAGS=-ggdb3 -fPIC -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE)
-DEBUGNVSFLAGS=-g -G -Xcompiler -ggdb3,-fPIC -D_LARGEFILE64_SOURCE=1
+DEBUGSFLAGS=-ggdb3 -fPIC -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(LONGEST_MATCH_CUDA) $(CS194CULZSS) 
+DEBUGNVSFLAGS=-g -G -Xcompiler -ggdb3,-fPIC -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(LONGEST_MATCH_CUDA) $(CS194CULZSS) 
 
 
 LDFLAGS= -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
@@ -194,23 +197,22 @@ placebo $(SHAREDLIBV): $(PIC_OBJS) libcz.a
 	rmdir objs
 
 example$(EXE): example.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ example.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -Wl,-rpath=$(CUDA_LIB),-rpath=.
+	$(CC) $(CFLAGS) -o $@ example.o $(TEST_LDFLAGS)
 
 minigzip$(EXE): minigzip.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ minigzip.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -Wl,-rpath=$(CUDA_LIB),-rpath=.
+	$(CC) $(CFLAGS) -o $@ minigzip.o $(TEST_LDFLAGS)
 
 examplesh$(EXE): example.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB),-rpath=.
+	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart
 
 minigzipsh$(EXE): minigzip.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB),-rpath=.
-
+	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart
 
 example64$(EXE): example64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB),-rpath=.
+	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS)
 
 minigzip64$(EXE): minigzip64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ minigzip64.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB),-rpath=.
+	$(CC) $(CFLAGS) -o $@ minigzip64.o $(TEST_LDFLAGS)
 
 install-libs: $(LIBS)
 	if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi

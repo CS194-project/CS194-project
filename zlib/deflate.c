@@ -215,6 +215,7 @@ struct static_tree_desc_s
 int ZEXPORT
 deflateInit_ (z_streamp strm, int level, const char *version, int stream_size)
 {
+  printf("calling deflate_init\n");
   return deflateInit2_ (strm, level, Z_DEFLATED, MAX_WBITS, DEF_MEM_LEVEL,
 			Z_DEFAULT_STRATEGY, version, stream_size);
   /* To do: ignore strm->next_in if we use it as window */
@@ -226,6 +227,7 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
 	       int memLevel, int strategy, const char *version,
 	       int stream_size)
 {
+  printf("calling deflate_init2\n");
   deflate_state *s;
   int wrap = 1;
   static const char my_version[] = ZLIB_VERSION;
@@ -294,7 +296,7 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
   strm->state = (struct internal_state FAR *) s;
   s->strm = strm;
 
-  culzss_init (s); /* Initialize CULZSS stuff. */
+  //culzss_init (s); /* Initialize CULZSS stuff. */
 
   s->wrap = wrap;
   s->gzhead = Z_NULL;
@@ -1080,7 +1082,7 @@ deflateEnd (z_streamp strm)
   TRY_FREE (strm, strm->state->prev);
   TRY_FREE (strm, strm->state->window);
 
-  culzss_destroy (strm->state);
+  //culzss_destroy (strm->state);
 
   ZFREE (strm, strm->state);
   strm->state = Z_NULL;
@@ -1750,6 +1752,23 @@ deflate_stored (deflate_state * s, int flush)
   return block_done;
 }
 
+#ifdef CS194CULZSS
+deflate_fast (deflate_state * s, int flush)
+{
+  IPos hash_head;		/* head of the hash chain */
+  int bflush;			/* set if current block must be flushed */
+
+  s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
+  if (flush == Z_FINISH)
+    {
+      FLUSH_BLOCK (s, 1);
+      return finish_done;
+    }
+  if (s->last_lit)
+    FLUSH_BLOCK (s, 0);
+  return finish_done;
+}
+#else
 /* ===========================================================================
  * Compress as much as possible from the input stream, return the current
  * block state.
@@ -1763,6 +1782,8 @@ deflate_fast (deflate_state * s, int flush)
   IPos hash_head;		/* head of the hash chain */
   int bflush;			/* set if current block must be flushed */
 
+  printf("deflate fast available in size: %lu\n",s->strm->avail_in);
+  printf("flush: %d\n",flush);
   for (;;)
     {
       /* Make sure that we always have enough lookahead, except
@@ -1855,7 +1876,7 @@ deflate_fast (deflate_state * s, int flush)
 	}
       if (bflush)
 	FLUSH_BLOCK (s, 0);
-    }
+    }//end for loop
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   if (flush == Z_FINISH)
     {
@@ -1866,6 +1887,7 @@ deflate_fast (deflate_state * s, int flush)
     FLUSH_BLOCK (s, 0);
   return block_done;
 }
+#endif
 
 #ifndef FASTEST
 /* ===========================================================================

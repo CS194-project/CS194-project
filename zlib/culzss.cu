@@ -63,7 +63,9 @@ culzss_init (deflate_state *s)
   cudaMalloc (&s->device_encode,
               sizeof (*s->device_encode) * (CULZSS_MAX_PROCESS_SIZE + CULZSS_WINDOW_SIZE +
                                          CULZSS_EXTRA_BUF));
-  checkCudaError ("Allocate device_in");
+  printf("allocate size: %lu\n",sizeof (*s->device_encode) * (CULZSS_MAX_PROCESS_SIZE + CULZSS_WINDOW_SIZE +
+                                                             CULZSS_EXTRA_BUF));
+  checkCudaError ("Allocate device_encode");
 }
 
 
@@ -71,7 +73,7 @@ void
 culzss_destroy (deflate_state *s)
 {
   /* Clean up */
-
+  printf("Calling culzss destroy\n");
   for (int i = 0; i < CULZSS_CUDA_NUM_STREAMS; i++)
     {
       if (s->streams[i] != NULL)
@@ -400,10 +402,10 @@ lzss_kernel (const unsigned char *__restrict__ in_g,
 /* deflate_state must have been initialized. */
 /* TODO. Specify size. */
 void
-culzss_longest_match (deflate_state *s)
+culzss_longest_match (deflate_state *s, int size, int is_firstblock)
 {
-  int size = 0; /* TODO */
-  int is_firstblock = 1; /* TODO. Change it to improve compression ratio. */
+  //int size = 0; /* TODO */
+  //int is_firstblock = 1; /* TODO. Change it to improve compression ratio. */
 
       /* Don't need to  copy and compress initial winodw */
   cudaMemcpyAsync (s->device_in + CULZSS_WINDOW_SIZE,

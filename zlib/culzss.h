@@ -41,6 +41,6 @@ const int CULZSS_CUDA_NUM_STREAMS = (CULZSS_MAX_PROCESS_SIZE / CULZSS_CUDA_BLOCK
 
 void culzss_init (deflate_state *s);
 void culzss_destroy (deflate_state *s);
-void culzss_longest_match (deflate_state *s);
+void culzss_longest_match (deflate_state *s, int size, int is_firstblock);
 
 #endif
