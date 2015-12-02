@@ -18,7 +18,7 @@
 ifdef ENABLE_CUDA
 LONGEST_MATCH_CUDA:='-DLONGEST_MATCH_CUDA=1'
 endif
-ifdef CS194CULZSS
+ifdef CULZSS
 CS194CULZSS:='-DCS194CULZSS=1'
 endif
 CC=g++
@@ -197,22 +197,22 @@ placebo $(SHAREDLIBV): $(PIC_OBJS) libcz.a
 	rmdir objs
 
 example$(EXE): example.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ example.o $(TEST_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ example.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 
 minigzip$(EXE): minigzip.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ minigzip.o $(TEST_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ minigzip.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 
 examplesh$(EXE): example.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart
+	$(CC) $(CFLAGS) -o $@ example.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 
 minigzipsh$(EXE): minigzip.o $(SHAREDLIBV)
-	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart
+	$(CC) $(CFLAGS) -o $@ minigzip.o -L. $(SHAREDLIBV) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 
 example64$(EXE): example64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ example64.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 
 minigzip64$(EXE): minigzip64.o $(STATICLIB)
-	$(CC) $(CFLAGS) -o $@ minigzip64.o $(TEST_LDFLAGS)
+	$(CC) $(CFLAGS) -o $@ minigzip64.o $(TEST_LDFLAGS) -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
 
 install-libs: $(LIBS)
 	if [ ! -d $(DESTDIR)$(exec_prefix)  ]; then mkdir -p $(DESTDIR)$(exec_prefix); fi

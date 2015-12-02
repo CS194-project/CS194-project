@@ -1753,6 +1753,7 @@ deflate_stored (deflate_state * s, int flush)
 }
 
 #ifdef CS194CULZSS
+local block_state
 deflate_fast (deflate_state * s, int flush)
 {
   int bflush;			/* set if current block must be flushed */
@@ -1760,12 +1761,13 @@ deflate_fast (deflate_state * s, int flush)
   if (s->strm->total_in == 0)
     is_firstblock = 1;
   //copy block to host_in
-  for(int i=0; i<s->strm->avail_in; i++)
+  int i;
+  for(i = 0; i<s->strm->avail_in; i++)
   {
     s->host_in[i] = s->strm->next_in[i];
   }
   //TODO: put the kernel inside a loop if size > CULZSS_MAX_PROCESS_SIZE
-  culzss_longest_match (*s, s->strm->avail_in, is_firstblock);
+  culzss_longest_match (s, s->strm->avail_in, is_firstblock);
   //s->last_lit = 0 from the beginning
   for(; s->last_lit<s->strm->avail_in; s->last_lit++)
   {
@@ -1782,16 +1784,16 @@ deflate_fast (deflate_state * s, int flush)
       }
       else
       {
-        _tr_tally_dist (s, s->host_encode[i]->dist,
-			  s->host_encode[i]->len, bflush);
-		s->strstart += s->host_encode[i]->len;//TODO: verify
+        _tr_tally_dist (s, s->host_encode[i].dist,
+			  s->host_encode[i].len, bflush);
+		s->strstart += s->host_encode[i].len;//TODO: verify
 
       }
     }
     if (bflush)
 	  FLUSH_BLOCK (s, 0);
   }
-  for(int i=CULZSS_WINDOW_SIZE)
+  //  for(int i=CULZSS_WINDOW_SIZE)
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   if (flush == Z_FINISH)
     {
