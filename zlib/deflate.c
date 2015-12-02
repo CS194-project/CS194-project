@@ -215,7 +215,6 @@ struct static_tree_desc_s
 int ZEXPORT
 deflateInit_ (z_streamp strm, int level, const char *version, int stream_size)
 {
-  printf("calling deflate_init\n");
   return deflateInit2_ (strm, level, Z_DEFLATED, MAX_WBITS, DEF_MEM_LEVEL,
 			Z_DEFAULT_STRATEGY, version, stream_size);
   /* To do: ignore strm->next_in if we use it as window */
@@ -227,7 +226,6 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
 	       int memLevel, int strategy, const char *version,
 	       int stream_size)
 {
-  printf("calling deflate_init2\n");
   deflate_state *s;
   int wrap = 1;
   static const char my_version[] = ZLIB_VERSION;
@@ -1757,7 +1755,7 @@ local block_state
 deflate_fast (deflate_state * s, int flush)
 {
   int bflush;			/* set if current block must be flushed */
-  int is_firstblock = 0;
+  int is_firstblock = 1;
   if (s->strm->total_in == 0)
     is_firstblock = 1;
   //copy block to host_in
@@ -1769,25 +1767,27 @@ deflate_fast (deflate_state * s, int flush)
   //TODO: put the kernel inside a loop if size > CULZSS_MAX_PROCESS_SIZE
   culzss_longest_match (s, s->strm->avail_in, is_firstblock);
   //s->last_lit = 0 from the beginning
-  for(; s->last_lit<s->strm->avail_in; s->last_lit++)
+  for(i = 0; i < s->strm->avail_in; i++)
   {
     if(i < CULZSS_WINDOW_SIZE)
     {
       _tr_tally_lit (s, s->strm->next_in[i], bflush);
       s->strstart++;
+      s->lookahead--;
     }
     else{
-      if(s->host_encode==0)
+      if(s->host_encode[i].dist==0)
       {
         _tr_tally_lit (s, s->strm->next_in[i], bflush);
         s->strstart++;
+        s->lookahead--;
       }
       else
       {
         _tr_tally_dist (s, s->host_encode[i].dist,
-			  s->host_encode[i].len, bflush);
+			  s->host_encode[i].len - MIN_MATCH, bflush);
 		s->strstart += s->host_encode[i].len;//TODO: verify
-
+        s->lookahead -= s->host_encode[i].len;
       }
     }
     if (bflush)
