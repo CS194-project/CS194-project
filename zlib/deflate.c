@@ -1793,6 +1793,8 @@ deflate_fast (deflate_state * s, int flush)
     if (bflush)
 	  FLUSH_BLOCK (s, 0);
   }
+  s->strm->next_in += s->strm->avail_in;
+  s->strm->avail_in = 0;
   //  for(int i=CULZSS_WINDOW_SIZE)
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   if (flush == Z_FINISH)
