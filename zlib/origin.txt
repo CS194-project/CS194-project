@@ -1,0 +1,30 @@
+(gdb) p *s
+$1 = {strm = 0x618118, status = 113, pending_buf = 0x64d9e0 "\363H\315\311\311W\b\317/\312IQ\344\002", pending_buf_size = 65536, pending_out = 0x64d9e0 "\363H\315\311\311W\b\317/\312IQ\344\002", pending = 0, wrap = 2, gz
+head = 0x0, gzindex = 0, method = 8 '\b', last_flush = 4, w_size = 32768, w_bits = 15, w_mask = 32767, window = 0x61d9b0 "Hello World!\n", window_size = 65536, prev = 0x62d9c0, head = 0x63d9d0, ins_h = 5162, hash_size =
+32768, hash_bits = 15, hash_mask = 32767, hash_shift = 5, block_start = 13, match_length = 2, prev_match = 0, match_available = 0, strstart = 13, match_start = 0, lookahead = 0, prev_length = 2, max_chain_length = 4, max
+_lazy_match = 4, level = 1, strategy = 0, good_match = 4, nice_match = 8, dyn_ltree = {{fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0
+}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, d
+l = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl =
+{dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 21 times>, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, c
+ode = 0}, dl = {dad = 0, len = 0}} <repeats 38 times>, {fc = {freq = 0, code = 0}, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 14 times>, {fc = {freq = 0, code = 0}, dl = {dad
+= 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 12 times>, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code =
+ 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0},
+ dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 2, len = 2}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl
+= {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {d
+ad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 141 times>, {fc = {freq = 1, code = 1}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 65535, len = 65535}}, {fc = {freq
+ = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 28 times>, {fc = {freq = 2, code = 2}, dl = {dad = 3, len = 3}}, {fc = {freq = 2, code = 2}, dl = {dad = 3, len = 3}}, {fc = {freq = 2, code = 2}, dl = {dad = 3, len = 3
+}}, {fc = {freq = 2, code = 2}, dl = {dad = 3, len = 3}}, {fc = {freq = 3, code = 3}, dl = {dad = 2, len = 2}}, {fc = {freq = 4, code = 4}, dl = {dad = 2, len = 2}}, {fc = {freq = 4, code = 4}, dl = {dad = 2, len = 2}},
+{fc = {freq = 6, code = 6}, dl = {dad = 1, len = 1}}, {fc = {freq = 8, code = 8}, dl = {dad = 1, len = 1}}, {fc = {freq = 14, code = 14}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <re
+peats 277 times>}, dyn_dtree = {{fc = {freq = 0, code = 0}, dl = {dad = 1, len = 1}}, {fc = {freq = 0, code = 0}, dl = {dad = 1, len = 1}}, {fc = {freq = 0, code = 0}, dl = {dad = 65535, len = 65535}}, {fc = {freq = 0, c
+ode = 0}, dl = {dad = 0, len = 0}} <repeats 27 times>, {fc = {freq = 2, code = 2}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 30 times>}, bl_tree = {{fc = {freq = 0, code = 0}
+, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code = 0}, dl
+ = {dad = 2, len = 2}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 12 times>, {fc = {freq = 0, code = 0}, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code = 0}, dl = {dad = 2, len = 2}}, {fc = {freq = 3
+, code = 3}, dl = {dad = 3, len = 3}}, {fc = {freq = 5, code = 5}, dl = {dad = 2, len = 2}}, {fc = {freq = 7, code = 7}, dl = {dad = 2, len = 2}}, {fc = {freq = 10, code = 10}, dl = {dad = 1, len = 1}}, {fc = {freq = 15,
+ code = 15}, dl = {dad = 1, len = 1}}, {fc = {freq = 25, code = 25}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 14 times>}, l_desc = {dyn_tree = 0x61c294, max_code = 256, stat
+_desc = 0x617360 <static_l_desc>}, d_desc = {dyn_tree = 0x61cb88, max_code = 1, stat_desc = 0x617380 <static_d_desc>}, bl_desc = {dyn_tree = 0x61cc7c, max_code = 18, stat_desc = 0x6173a0 <static_bl_desc>}, bl_count = {0,
+ 0, 2, 3, 2, 0 <repeats 11 times>}, heap = {0, 24, 23, 4, 21, 4, 0, 18, 108, 111, 114, 256, 0 <repeats 540 times>, 295, 294, 293, 292, 291, 290, 108, 288, 24, 23, 22, 4, 21, 20, 18, 0, 19, 17, 3, 1, 2}, heap_len = 1, hea
+p_max = 560, depth = '\000' <repeats 19 times>, "\001\001\002\002\003\004\000\000\000\000\000\001", '\000' <repeats 255 times>..., l_buf = 0x6599e0 "Hello World!\n", lit_bufsize = 16384, last_lit = 0, d_buf = 0x6519e0, o
+pt_len = 0, static_len = 0, matches = 0, insert = 2, bi_buf = 0, bi_valid = 0, high_water = 271, host_in = 0x0, device_in = 0x0, host_encode = 0x0, device_encode = 0x0, streams = {0x0 <repeats 17 times>}}
+(gdb) p *s->strm
+$2 = {next_in = 0x6181bd "", avail_in = 0, total_in = 13, next_out = 0x61a1d9 "", avail_out = 8167, total_out = 25, msg = 0x0, state = 0x61c1d0, zalloc = 0x40fc71 <zcalloc(void*, unsigned int, unsigned int)>, zfree = 0x4
+0fc9b <zcfree(void*, void*)>, opaque = 0x0, data_type = 1, adler = 2098519517, reserved = 0}

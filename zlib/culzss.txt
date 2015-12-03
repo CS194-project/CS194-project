@@ -1,0 +1,31 @@
+(gdb) p *s
+$2 = {strm = 0x6252b8, status = 113, pending_buf = 0x8ffb60 "\363H\315\311\311W\b\317/\312IQ\344\002", pending_buf_size = 65536, pending_out = 0x8ffb60 "\363H\315\311\311W\b\317/\312IQ\344\002", pending = 0, wrap = 2, gz
+head = 0x0, gzindex = 0, method = 8 '\b', last_flush = 4, w_size = 32768, w_bits = 15, w_mask = 32767, window = 0x8a9e10 "\bn5\367\377\177", window_size = 65536, prev = 0x8dfb40, head = 0x8efb50, ins_h = 0, hash_size = 3
+2768, hash_bits = 15, hash_mask = 32767, hash_shift = 5, block_start = 13, match_length = 2, prev_match = 0, match_available = 0, strstart = 13, match_start = 0, lookahead = 4294967283, prev_length = 2, max_chain_length
+= 4, max_lazy_match = 4, level = 1, strategy = 0, good_match = 4, nice_match = 8, dyn_ltree = {{fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0,
+code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code
+ = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0
+}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 21 times>, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {fre
+q = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 38 times>, {fc = {freq = 0, code = 0}, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 14 times>, {fc = {freq = 0, code = 0}, dl
+ = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 12 times>, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0
+, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, co
+de = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 2, len = 2}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code =
+ 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0},
+ dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 141 times>, {fc = {freq = 1, code = 1}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 65535, len = 65535}}, {fc
+ = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 28 times>, {fc = {freq = 2, code = 2}, dl = {dad = 3, len = 3}}, {fc = {freq = 2, code = 2}, dl = {dad = 3, len = 3}}, {fc = {freq = 2, code = 2}, dl = {dad = 3,
+ len = 3}}, {fc = {freq = 2, code = 2}, dl = {dad = 3, len = 3}}, {fc = {freq = 3, code = 3}, dl = {dad = 2, len = 2}}, {fc = {freq = 4, code = 4}, dl = {dad = 2, len = 2}}, {fc = {freq = 4, code = 4}, dl = {dad = 2, len
+ = 2}}, {fc = {freq = 6, code = 6}, dl = {dad = 1, len = 1}}, {fc = {freq = 8, code = 8}, dl = {dad = 1, len = 1}}, {fc = {freq = 14, code = 14}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len =
+ 0}} <repeats 277 times>}, dyn_dtree = {{fc = {freq = 0, code = 0}, dl = {dad = 1, len = 1}}, {fc = {freq = 0, code = 0}, dl = {dad = 1, len = 1}}, {fc = {freq = 0, code = 0}, dl = {dad = 65535, len = 65535}}, {fc = {fre
+q = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 27 times>, {fc = {freq = 2, code = 2}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 30 times>}, bl_tree = {{fc = {freq = 0, c
+ode = 0}, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 4, len = 4}}, {fc = {freq = 0, code = 0}, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code
+= 0}, dl = {dad = 2, len = 2}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 12 times>, {fc = {freq = 0, code = 0}, dl = {dad = 3, len = 3}}, {fc = {freq = 0, code = 0}, dl = {dad = 2, len = 2}}, {fc = {
+freq = 3, code = 3}, dl = {dad = 3, len = 3}}, {fc = {freq = 5, code = 5}, dl = {dad = 2, len = 2}}, {fc = {freq = 7, code = 7}, dl = {dad = 2, len = 2}}, {fc = {freq = 10, code = 10}, dl = {dad = 1, len = 1}}, {fc = {fr
+eq = 15, code = 15}, dl = {dad = 1, len = 1}}, {fc = {freq = 25, code = 25}, dl = {dad = 0, len = 0}}, {fc = {freq = 0, code = 0}, dl = {dad = 0, len = 0}} <repeats 14 times>}, l_desc = {dyn_tree = 0x629434, max_code = 2
+56, stat_desc = 0x624400 <static_l_desc>}, d_desc = {dyn_tree = 0x629d28, max_code = 1, stat_desc = 0x624420 <static_d_desc>}, bl_desc = {dyn_tree = 0x629e1c, max_code = 18, stat_desc = 0x624440 <static_bl_desc>}, bl_cou
+nt = {0, 0, 2, 3, 2, 0 <repeats 11 times>}, heap = {0, 24, 23, 4, 21, 4, 0, 18, 108, 111, 114, 256, 0 <repeats 540 times>, 295, 294, 293, 292, 291, 290, 108, 288, 24, 23, 22, 4, 21, 20, 18, 0, 19, 17, 3, 1, 2}, heap_len
+= 1, heap_max = 560, depth = '\000' <repeats 19 times>, "\001\001\002\002\003\004\000\000\000\000\000\001", '\000' <repeats 255 times>..., l_buf = 0x90bb60 "Hello World!\n", lit_bufsize = 16384, last_lit = 0, d_buf = 0x9
+03b60, opt_len = 0, static_len = 0, matches = 0, insert = 2, bi_buf = 0, bi_valid = 0, high_water = 0, host_in = 0x200d00000 "Hello World!\n", device_in = 0x700b80000 "", host_encode = 0x201d20000, device_encode = 0x701b
+a0000, streams = {0x7e41f0, 0x88ba50, 0x86d960, 0x88ba30, 0x88e2e0, 0x88eae0, 0x88f2e0, 0x88fae0, 0x8902e0, 0x890ae0, 0x8912e0, 0x892760, 0x892f60, 0x893760, 0x893f60, 0x894760, 0x894f60}}
+(gdb) p *s->strm
+$3 = {next_in = 0x62535d "", avail_in = 0, total_in = 0, next_out = 0x627379 "", avail_out = 8167, total_out = 25, msg = 0x0, state = 0x629370, zalloc = 0x4102a0 <zcalloc(void*, unsigned int, unsigned int)>, zfree = 0x41
+02ca <zcfree(void*, void*)>, opaque = 0x0, data_type = 1, adler = 0, reserved = 0}
