@@ -215,7 +215,6 @@ struct static_tree_desc_s
 int ZEXPORT
 deflateInit_ (z_streamp strm, int level, const char *version, int stream_size)
 {
-  printf("calling deflate_init\n");
   return deflateInit2_ (strm, level, Z_DEFLATED, MAX_WBITS, DEF_MEM_LEVEL,
 			Z_DEFAULT_STRATEGY, version, stream_size);
   /* To do: ignore strm->next_in if we use it as window */
@@ -227,7 +226,6 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
 	       int memLevel, int strategy, const char *version,
 	       int stream_size)
 {
-  printf("calling deflate_init2\n");
   deflate_state *s;
   int wrap = 1;
   static const char my_version[] = ZLIB_VERSION;
@@ -1756,6 +1754,7 @@ deflate_stored (deflate_state * s, int flush)
 local block_state
 deflate_fast (deflate_state * s, int flush)
 {
+  //fprintf(stderr, "cs194 deflast_fast called\n");
   int bflush;			/* set if current block must be flushed */
   int is_firstblock = 0;
   if (s->strm->total_in == 0)
@@ -1771,29 +1770,20 @@ deflate_fast (deflate_state * s, int flush)
   //s->last_lit = 0 from the beginning
   for(; s->last_lit<s->strm->avail_in; s->last_lit++)
   {
-    if(i < CULZSS_WINDOW_SIZE)
+    //fprintf(stderr, "last_lit: %d, dist: %d, len: %d\n", s->last_lit, s->host_encode[i].dist, s->host_encode[i].len);
+    if(i < CULZSS_WINDOW_SIZE || s->host_encode[i].dist == 0)
     {
-      _tr_tally_lit (s, s->strm->next_in[i], bflush);
+      _tr_tally_lit (s, s->strm->next_in[s->last_lit], bflush);
       s->strstart++;
     }
     else{
-      if(s->host_encode==0)
-      {
-        _tr_tally_lit (s, s->strm->next_in[i], bflush);
-        s->strstart++;
-      }
-      else
-      {
-        _tr_tally_dist (s, s->host_encode[i].dist,
+        _tr_tally_dist (s, s->host_encode[s->last_lit].dist,
 			  s->host_encode[i].len, bflush);
-		s->strstart += s->host_encode[i].len;//TODO: verify
-
-      }
+		s->strstart += s->host_encode[s->last_lit].len;//TODO: verify
     }
     if (bflush)
 	  FLUSH_BLOCK (s, 0);
   }
-  //  for(int i=CULZSS_WINDOW_SIZE)
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   if (flush == Z_FINISH)
     {

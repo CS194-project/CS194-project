@@ -19,7 +19,7 @@ checkCPUError (const char *msg)
   if (errno != 0 && errno != EEXIST)
     {
       char *errmsg = strerror_r (errno, buf, 1024);
-      printf ("CPU error: %s: %s.\n", msg, errmsg);
+      fprintf (stderr, "CPU error: %s: %s.\n", msg, errmsg);
       exit (1);
     }
 }
@@ -63,8 +63,6 @@ culzss_init (deflate_state *s)
   cudaMalloc (&s->device_encode,
               sizeof (*s->device_encode) * (CULZSS_MAX_PROCESS_SIZE + CULZSS_WINDOW_SIZE +
                                          CULZSS_EXTRA_BUF));
-  printf("allocate size: %lu\n",sizeof (*s->device_encode) * (CULZSS_MAX_PROCESS_SIZE + CULZSS_WINDOW_SIZE +
-                                                             CULZSS_EXTRA_BUF));
   checkCudaError ("Allocate device_encode");
 }
 
@@ -73,7 +71,6 @@ void
 culzss_destroy (deflate_state *s)
 {
   /* Clean up */
-  printf("Calling culzss destroy\n");
   for (int i = 0; i < CULZSS_CUDA_NUM_STREAMS; i++)
     {
       if (s->streams[i] != NULL)
