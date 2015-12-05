@@ -1689,6 +1689,7 @@ fill_window (deflate_state * s)
 local block_state
 deflate_stored (deflate_state * s, int flush)
 {
+  //fprintf(stderr, "deflast_stored called\n");
   /* Stored blocks are limited to 0xffff bytes, pending_buf is limited
    * to pending_buf_size, and each stored block has a 5 byte header:
    */
@@ -1764,6 +1765,7 @@ deflate_fast (deflate_state * s, int flush)
   for(i = 0; i<s->strm->avail_in; i++)
   {
     s->host_in[i] = s->strm->next_in[i];
+    s->strm->total_in++;
   }
   //TODO: put the kernel inside a loop if size > CULZSS_MAX_PROCESS_SIZE
   culzss_longest_match (s, s->strm->avail_in, is_firstblock);
@@ -1773,41 +1775,23 @@ deflate_fast (deflate_state * s, int flush)
     //fprintf(stderr, "last_lit: %d, dist: %d, len: %d\n", s->last_lit, s->host_encode[i].dist, s->host_encode[i].len);
     if(i < CULZSS_WINDOW_SIZE || s->host_encode[i].dist == 0)
     {
-      _tr_tally_lit (s, s->strm->next_in[s->last_lit], bflush);
+      _tr_tally_lit (s, s->strm->next_in[i], bflush);
       s->strstart++;
       s->lookahead--;
     }
     else{
-<<<<<<< HEAD
-        _tr_tally_dist (s, s->host_encode[s->last_lit].dist,
-			  s->host_encode[i].len, bflush);
-		s->strstart += s->host_encode[s->last_lit].len;//TODO: verify
-=======
-      if(s->host_encode[i].dist==0)
-      {
-        _tr_tally_lit (s, s->strm->next_in[i], bflush);
-        s->strstart++;
-        s->lookahead--;
-      }
-      else
-      {
         _tr_tally_dist (s, s->host_encode[i].dist,
-			  s->host_encode[i].len - MIN_MATCH, bflush);
-		s->strstart += s->host_encode[i].len;//TODO: verify
+			  s->host_encode[i].len, bflush);
+		    s->strstart += s->host_encode[i].len;//TODO: verify
         s->lookahead -= s->host_encode[i].len;
-      }
->>>>>>> 98580132e964e8cabbadc0e9f74007a9e6fa85f7
     }
     if (bflush)
 	  FLUSH_BLOCK (s, 0);
   }
-<<<<<<< HEAD
-=======
   s->strm->next_in += s->strm->avail_in;
   s->strm->avail_in = 0;
-  //  for(int i=CULZSS_WINDOW_SIZE)
->>>>>>> 98580132e964e8cabbadc0e9f74007a9e6fa85f7
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
+  s->lookahead = 0;
   if (flush == Z_FINISH)
     {
       FLUSH_BLOCK (s, 1);
@@ -1815,7 +1799,7 @@ deflate_fast (deflate_state * s, int flush)
     }
   if (s->last_lit)
     FLUSH_BLOCK (s, 0);
-  return finish_done;
+  return block_done;
 }
 #else
 /* ===========================================================================
@@ -1830,7 +1814,7 @@ deflate_fast (deflate_state * s, int flush)
 {
   IPos hash_head;		/* head of the hash chain */
   int bflush;			/* set if current block must be flushed */
-
+  //fprintf(stderr, "deflast_fast called\n");
   for (;;)
     {
       /* Make sure that we always have enough lookahead, except
@@ -1945,6 +1929,7 @@ deflate_fast (deflate_state * s, int flush)
 local block_state
 deflate_slow (deflate_state * s, int flush)
 {
+  //fprintf(stderr, "deflast_slow called\n");
   IPos hash_head;		/* head of hash chain */
   int bflush;			/* set if current block must be flushed */
 
@@ -2096,6 +2081,7 @@ deflate_slow (deflate_state * s, int flush)
 local block_state
 deflate_rle (deflate_state * s, int flush)
 {
+  //fprintf(stderr, "deflast_rle called\n");
   int bflush;			/* set if current block must be flushed */
   uInt prev;			/* byte at distance one to match */
   Bytef *scan, *strend;		/* scan goes up to strend for length of run */
@@ -2181,6 +2167,7 @@ deflate_rle (deflate_state * s, int flush)
 local block_state
 deflate_huff (deflate_state * s, int flush)
 {
+  //fprintf(stderr, "deflast_huff called\n");
   int bflush;			/* set if current block must be flushed */
 
   for (;;)
