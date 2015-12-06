@@ -1656,6 +1656,65 @@ fill_window (deflate_state * s)
 	  "not enough room for search");
 }
 
+
+local void
+fill_window_culzss (deflate_state * s)
+{
+  register unsigned n, m;
+  register Posf *p;
+  unsigned more;		/* Amount of free space at the end of the window. */
+  uInt wsize = s->w_size;
+
+  Assert (s->lookahead < MIN_LOOKAHEAD, "already enough lookahead");
+
+  do
+    {
+      more =
+	(unsigned) (s->window_size - (ulg) s->lookahead - (ulg) s->strstart);
+
+      /* Deal with !@#$% 64K limit: */
+      if (sizeof (int) <= 2)
+	{
+	  if (more == 0 && s->strstart == 0 && s->lookahead == 0)
+	    {
+	      more = wsize;
+
+	    }
+	  else if (more == (unsigned) (-1))
+	    {
+	      /* Very unlikely, but possible on 16 bit machine if
+	       * strstart == 0 && lookahead == 1 (input done a byte at time)
+	       */
+	      more--;
+	    }
+	}
+      if (s->strm->avail_in == 0)
+	break;
+
+      /* If there was no sliding:
+       *    strstart <= WSIZE+MAX_DIST-1 && lookahead <= MIN_LOOKAHEAD - 1 &&
+       *    more == window_size - lookahead - strstart
+       * => more >= window_size - (MIN_LOOKAHEAD-1 + WSIZE + MAX_DIST-1)
+       * => more >= window_size - 2*WSIZE + 2
+       * In the BIG_MEM or MMAP case (not yet supported),
+       *   window_size == input_size + MIN_LOOKAHEAD  &&
+       *   strstart + s->lookahead <= input_size => more >= MIN_LOOKAHEAD.
+       * Otherwise, window_size == 2*WSIZE so more >= 2.
+       * If there was sliding, more >= WSIZE. So in all cases, more >= 2.
+       */
+      Assert (more >= 2, "more < 2");
+
+      n = read_buf (s->strm, s->host_in + s->strstart + s->lookahead, more);
+      s->lookahead += n;
+
+      /* If the whole input has less than MIN_MATCH bytes, ins_h is garbage,
+       * but this is not important since only literal bytes will be emitted.
+       */
+
+    }
+  while (s->strm->avail_in != 0);
+}
+
 /* ===========================================================================
  * Flush the current block, with given end-of-file flag.
  * IN assertion: strstart is set to the end of the current match.
@@ -1760,36 +1819,35 @@ deflate_fast (deflate_state * s, int flush)
   int is_firstblock = 1;
   if (s->strm->total_in == 0)
     is_firstblock = 1;
+
+  int n = s->strm->avail_in;
   //copy block to host_in
+  fill_window_culzss(s);
+
   int i;
-  for(i = 0; i<s->strm->avail_in; i++)
-  {
-    s->host_in[i] = s->strm->next_in[i];
-    s->strm->total_in++;
-  }
   //TODO: put the kernel inside a loop if size > CULZSS_MAX_PROCESS_SIZE
-  culzss_longest_match (s, s->strm->avail_in, is_firstblock);
+  culzss_longest_match (s, n, is_firstblock);
   //s->last_lit = 0 from the beginning
-  for(i = 0; i < s->strm->avail_in; i++)
+  for(i = 0; i < n; i++)
   {
     //fprintf(stderr, "last_lit: %d, dist: %d, len: %d\n", s->last_lit, s->host_encode[i].dist, s->host_encode[i].len);
     if(i < CULZSS_WINDOW_SIZE || s->host_encode[i].dist == 0)
     {
-      _tr_tally_lit (s, s->strm->next_in[i], bflush);
+      _tr_tally_lit (s, s->host_encode[i].len, bflush);
       s->strstart++;
-      s->lookahead--;
+      //s->lookahead--;
     }
     else{
         _tr_tally_dist (s, s->host_encode[i].dist,
 			  s->host_encode[i].len, bflush);
-		    s->strstart += s->host_encode[i].len;//TODO: verify
-        s->lookahead -= s->host_encode[i].len;
+        s->strstart += s->host_encode[i].len;//TODO: verify
+        // s->lookahead -= s->host_encode[i].len;
     }
     if (bflush)
 	  FLUSH_BLOCK (s, 0);
   }
-  s->strm->next_in += s->strm->avail_in;
-  s->strm->avail_in = 0;
+  s->l_buf[i] = 0;
+
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   s->lookahead = 0;
   if (flush == Z_FINISH)
