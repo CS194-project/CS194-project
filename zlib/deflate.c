@@ -295,6 +295,7 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
   s->strm = strm;
 #ifdef CS194CULZSS
   culzss_init (s); /* Initialize CULZSS stuff. */
+  memLevel = 18; /* Enforce large buffer to take advantage of GPU. */
 #endif
   s->wrap = wrap;
   s->gzhead = Z_NULL;
@@ -316,6 +317,7 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
   s->lit_bufsize = 1 << (memLevel + 6);	/* 16K elements by default */
 
   overlay = (ushf *) ZALLOC (strm, s->lit_bufsize, sizeof (ush) + 2);
+  fprintf (stderr, "%d\n", s->lit_bufsize);
   s->pending_buf = (uchf *) overlay;
   s->pending_buf_size = (ulg) s->lit_bufsize * (sizeof (ush) + 2L);
 
@@ -1704,7 +1706,7 @@ fill_window_culzss (deflate_state * s)
        */
       Assert (more >= 2, "more < 2");
 
-      n = read_buf (s->strm, s->host_in + s->strstart + s->lookahead, more);
+      n = read_buf (s->strm, s->host_in + CULZSS_WINDOW_SIZE + s->strstart + s->lookahead, more);
       s->lookahead += n;
 
       /* If the whole input has less than MIN_MATCH bytes, ins_h is garbage,
@@ -1822,26 +1824,27 @@ deflate_fast (deflate_state * s, int flush)
 
   int n = s->strm->avail_in;
   //copy block to host_in
-  fill_window_culzss(s);
+  zmemcpy (s->host_in + CULZSS_WINDOW_SIZE, s->strm->next_in, sizeof(char)*s->strm->avail_in);
+  fill_window(s);
 
   int i;
   //TODO: put the kernel inside a loop if size > CULZSS_MAX_PROCESS_SIZE
-  culzss_longest_match (s, n, is_firstblock);
+  culzss_longest_match (s, n+CULZSS_WINDOW_SIZE, is_firstblock);
   //s->last_lit = 0 from the beginning
   for(i = 0; i < n; i++)
   {
     //fprintf(stderr, "last_lit: %d, dist: %d, len: %d\n", s->last_lit, s->host_encode[i].dist, s->host_encode[i].len);
     if(i < CULZSS_WINDOW_SIZE || s->host_encode[i].dist == 0)
     {
-      _tr_tally_lit (s, s->host_encode[i].len, bflush);
+        _tr_tally_lit (s, (unsigned char)s->host_encode[i+CULZSS_WINDOW_SIZE].len, bflush);
       s->strstart++;
-      //s->lookahead--;
+      s->lookahead--;
     }
     else{
         _tr_tally_dist (s, s->host_encode[i].dist,
-			  s->host_encode[i].len, bflush);
+                        (unsigned char)s->host_encode[i+CULZSS_WINDOW_SIZE].len, bflush);
         s->strstart += s->host_encode[i].len;//TODO: verify
-        // s->lookahead -= s->host_encode[i].len;
+        s->lookahead -= s->host_encode[i].len;
     }
     if (bflush)
 	  FLUSH_BLOCK (s, 0);
@@ -1850,6 +1853,7 @@ deflate_fast (deflate_state * s, int flush)
 
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   s->lookahead = 0;
+
   if (flush == Z_FINISH)
     {
       FLUSH_BLOCK (s, 1);
