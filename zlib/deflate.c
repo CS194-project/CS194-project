@@ -1755,24 +1755,18 @@ deflate_stored (deflate_state * s, int flush)
 local block_state
 deflate_fast (deflate_state * s, int flush)
 {
-  //fprintf(stderr, "cs194 deflast_fast called\n");
+  fprintf(stderr, "cs194 deflast_fast called\n");
   int bflush;			/* set if current block must be flushed */
-  int is_firstblock = 1;
+  int is_firstblock = 0;
   if (s->strm->total_in == 0)
     is_firstblock = 1;
   //copy block to host_in
-  int i;
-  for(i = 0; i<s->strm->avail_in; i++)
-  {
-    s->host_in[i] = s->strm->next_in[i];
-    s->strm->total_in++;
-  }
-  //TODO: put the kernel inside a loop if size > CULZSS_MAX_PROCESS_SIZE
-  culzss_longest_match (s, s->strm->avail_in, is_firstblock);
+  int i, n = s->strm->avail_in;
+  zmemcpy (s->host_in, s->strm->next_in, n);
+  culzss_longest_match (s, n, is_firstblock);
   //s->last_lit = 0 from the beginning
-  for(i = 0; i < s->strm->avail_in; i++)
+  for(i = 0; i < n; i++)
   {
-    //fprintf(stderr, "last_lit: %d, dist: %d, len: %d\n", s->last_lit, s->host_encode[i].dist, s->host_encode[i].len);
     if(i < CULZSS_WINDOW_SIZE || s->host_encode[i].dist == 0)
     {
       _tr_tally_lit (s, s->strm->next_in[i], bflush);
@@ -1788,8 +1782,19 @@ deflate_fast (deflate_state * s, int flush)
     if (bflush)
 	  FLUSH_BLOCK (s, 0);
   }
-  s->strm->next_in += s->strm->avail_in;
-  s->strm->avail_in = 0;
+  if (s->strm->state->wrap == 1)
+  {
+    s->strm->adler = adler32 (s->strm->adler, s->strm->next_in, n);
+  }
+#ifdef GZIP
+  else if (s->strm->state->wrap == 2)
+  {
+    s->strm->adler = crc32 (s->strm->adler, s->strm->next_in, n);
+  }
+#endif
+  s->strm->avail_in -= n;
+  s->strm->next_in += n;
+  s->strm->total_in += n;
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   s->lookahead = 0;
   if (flush == Z_FINISH)
