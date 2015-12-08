@@ -15,9 +15,6 @@
 #    make install
 # To install in $HOME instead of /usr/local, use:
 #    make install prefix=$HOME
-ifdef ENABLE_CUDA
-LONGEST_MATCH_CUDA:='-DLONGEST_MATCH_CUDA=1'
-endif
 ifdef CULZSS
 CS194CULZSS:='-DCS194CULZSS=1'
 endif
@@ -36,14 +33,14 @@ CUDA_INCLUDE=/usr/local/cuda/include
 #CFLAGS=-O3 -Wall -Wwrite-strings -Wpointer-arith -Wconversion \
 #           -Wstrict-prototypes -Wmissing-prototypes
 
-SFLAGS?=-fPIC -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE)
-NVSFLAGS?=-Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1
+SFLAGS?=-fPIC -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(CS194CULZSS)
+NVSFLAGS?=-Xcompiler -fPIC -D_LARGEFILE64_SOURCE=1 $(CS194CULZSS)
 DEBUGSFLAGS=-ggdb3 -fPIC -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(LONGEST_MATCH_CUDA) $(CS194CULZSS) 
 DEBUGNVSFLAGS=-g -G -Xcompiler -ggdb3,-fPIC -D_LARGEFILE64_SOURCE=1 -I$(CUDA_INCLUDE) $(LONGEST_MATCH_CUDA) $(CS194CULZSS) 
 
 
-LDFLAGS= -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
-TEST_LDFLAGS=-L. libcz.a -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB)
+LDFLAGS= -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB) $(CS194CULZSS)
+TEST_LDFLAGS=-L. libcz.a -L$(CUDA_LIB) -lcudart -Wl,-rpath=$(CUDA_LIB) $(CS194CULZSS)
 LDSHARED=g++ -shared -Wl,-soname,libcz.so.1,--version-script,zlib.map
 CPP=g++ -E
 
