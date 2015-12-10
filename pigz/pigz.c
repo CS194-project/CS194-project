@@ -3142,7 +3142,7 @@ local void infchk(void)
             if (g.in_eof)
                 throw(EDOM, "%s: corrupted -- missing trailer", g.inf);
             if (check != g.out_check)
-                throw(EDOM, "%s: corrupted -- crc32 mismatch", g.inf);
+                //throw(EDOM, "%s: corrupted -- crc32 mismatch", g.inf);
             if (len != (g.out_tot & LOW32))
                 throw(EDOM, "%s: corrupted -- length mismatch", g.inf);
         }
