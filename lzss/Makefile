@@ -35,13 +35,13 @@ endif
 # FMOBJ = list.o
 
 # hash table
-# FMOBJ = hash.o
+ FMOBJ = hash.o
 
 # Knuth–Morris–Pratt search
 # FMOBJ = kmp.o
 
 # binary tree
-FMOBJ = tree.o
+#FMOBJ = tree.o
 
 LZOBJS = $(FMOBJ) lzss.o
 

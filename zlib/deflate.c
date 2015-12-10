@@ -293,9 +293,9 @@ deflateInit2_ (z_streamp strm, int level, int method, int windowBits,
     return Z_MEM_ERROR;
   strm->state = (struct internal_state FAR *) s;
   s->strm = strm;
-#ifdef CS194CULZSS
+
   culzss_init (s); /* Initialize CULZSS stuff. */
-#endif
+
   s->wrap = wrap;
   s->gzhead = Z_NULL;
   s->w_bits = windowBits;
@@ -1751,69 +1751,6 @@ deflate_stored (deflate_state * s, int flush)
   return block_done;
 }
 
-#ifdef CS194CULZSS
-local block_state
-deflate_fast (deflate_state * s, int flush)
-{
-  fprintf(stderr, "cs194 deflast_fast called\n");
-  int bflush;			/* set if current block must be flushed */
-  int is_firstblock = 0;
-  if (s->strm->total_in == 0)
-    is_firstblock = 1;
-  //copy block to host_in
-  int i, n = s->strm->avail_in;
-  zmemcpy (s->host_in, s->strm->next_in, n);
-  culzss_longest_match (s, n, is_firstblock);
-  //s->last_lit = 0 from the beginning
-  for(i = 0; i < n; i++)
-  {
-    if(i < CULZSS_WINDOW_SIZE || s->host_encode[i].dist == 0)
-    {
-      _tr_tally_lit (s, s->strm->next_in[i], bflush);
-      s->strstart++;
-      s->lookahead--;
-    }
-    else{
-        _tr_tally_dist (s, s->host_encode[i].dist,
-			  s->host_encode[i].len, bflush);
-		    s->strstart += s->host_encode[i].len;//TODO: verify
-        s->lookahead -= s->host_encode[i].len;
-    }
-    if (bflush)
-	  FLUSH_BLOCK (s, 0);
-  }
-  if (s->strm->state->wrap == 1)
-  {
-    s->strm->adler = adler32 (s->strm->adler, s->strm->next_in, n);
-  }
-#ifdef GZIP
-  else if (s->strm->state->wrap == 2)
-  {
-    s->strm->adler = crc32 (s->strm->adler, s->strm->next_in, n);
-  }
-#endif
-  s->strm->avail_in -= n;
-  s->strm->next_in += n;
-  s->strm->total_in += n;
-  s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
-  s->lookahead = 0;
-  if (flush == Z_FINISH)
-    {
-      FLUSH_BLOCK (s, 1);
-      return finish_done;
-    }
-  if (s->last_lit)
-    FLUSH_BLOCK (s, 0);
-  return block_done;
-}
-#else
-/* ===========================================================================
- * Compress as much as possible from the input stream, return the current
- * block state.
- * This function does not perform lazy evaluation of matches and inserts
- * new strings in the dictionary only for unmatched strings or for short
- * matches. It is used only for the fast compression options.
- */
 local block_state
 deflate_fast (deflate_state * s, int flush)
 {
@@ -1836,83 +1773,56 @@ deflate_fast (deflate_state * s, int flush)
 	    }
 	  if (s->lookahead == 0)
 	    break;		/* flush the current block */
+
+      if (s->lookahead < MIN_LOOKAHEAD)
+        {
+          /* No match, output a literal byte */
+          Tracevv ((stderr, "%c", s->window[s->strstart]));
+          _tr_tally_lit (s, s->window[s->strstart], bflush);
+          s->lookahead--;
+          s->strstart++;
+
+          if (bflush)
+            FLUSH_BLOCK (s, 0);
+        }
 	}
 
-      /* Insert the string window[strstart .. strstart+2] in the
-       * dictionary, and set hash_head to the head of the hash chain:
-       */
-      hash_head = NIL;
-      if (s->lookahead >= MIN_MATCH)
-	{
-	  INSERT_STRING (s, s->strstart, hash_head);
-	}
-
-      /* Find the longest match, discarding those <= prev_length.
-       * At this point we have always match_length < MIN_MATCH
-       */
-      if (hash_head != NIL && s->strstart - hash_head <= MAX_DIST (s))
-	{
-	  /* To simplify the code, we prevent matches with the string
-	   * of window index 0 (in particular we have to avoid a match
-	   * of the string with itself at the start of the input file).
-	   */
-	  s->match_length = longest_match (s, hash_head);
-	  /* longest_match() sets match_start */
-	}
-      if (s->match_length >= MIN_MATCH)
-	{
-	  check_match (s, s->strstart, s->match_start, s->match_length);
-
-	  _tr_tally_dist (s, s->strstart - s->match_start,
-			  s->match_length - MIN_MATCH, bflush);
-
-	  s->lookahead -= s->match_length;
-
-	  /* Insert new strings in the hash table only if the match length
-	   * is not too large. This saves time but degrades compression.
-	   */
-#ifndef FASTEST
-	  if (s->match_length <= s->max_insert_length &&
-	      s->lookahead >= MIN_MATCH)
-	    {
-	      s->match_length--;	/* string at strstart already in table */
-	      do
-		{
-		  s->strstart++;
-		  INSERT_STRING (s, s->strstart, hash_head);
-		  /* strstart never exceeds WSIZE-MAX_MATCH, so there are
-		   * always MIN_MATCH bytes ahead.
-		   */
-		}
-	      while (--s->match_length != 0);
-	      s->strstart++;
-	    }
-	  else
-#endif
-	    {
-	      s->strstart += s->match_length;
-	      s->match_length = 0;
-	      s->ins_h = s->window[s->strstart];
-	      UPDATE_HASH (s, s->ins_h, s->window[s->strstart + 1]);
-#if MIN_MATCH != 3
-	      Call UPDATE_HASH () MIN_MATCH - 3 more times
-#endif
-		/* If lookahead < MIN_MATCH, ins_h is garbage, but it does not
-		 * matter since it will be recomputed at next deflate call.
-		 */
-	    }
-	}
       else
-	{
-	  /* No match, output a literal byte */
-	  Tracevv ((stderr, "%c", s->window[s->strstart]));
-	  _tr_tally_lit (s, s->window[s->strstart], bflush);
-	  s->lookahead--;
-	  s->strstart++;
-	}
-      if (bflush)
-	FLUSH_BLOCK (s, 0);
-    }//end for loop
+        {
+          memcpy (s->host_in, s->window+s->strstart, 48184);
+
+          culzss_longest_match (s, 48184, 1);
+          int i = 0;
+          while (s->lookahead >= MIN_LOOKAHEAD)
+            {
+              if (i < CULZSS_WINDOW_SIZE || s->host_encode[i].dist == 0
+                  || s->lookahead - s->host_encode[i].len <= MIN_LOOKAHEAD)
+                {
+                  _tr_tally_lit (s, s->window[s->strstart], bflush);
+                  s->strstart++;
+                  i++;
+                  if (s->lookahead == 0)
+                    break;
+                  s->lookahead--;
+                }
+              else
+                {
+                  int match_length = s->host_encode[i].len;
+                  s->match_length = match_length>s->lookahead? s->lookahead: match_length;
+                  _tr_tally_dist (s, s->host_encode[i].dist,
+                                  s->match_length - MIN_MATCH, bflush);
+                  s->strstart += s->match_length;
+                  i += s->match_length;
+                  s->lookahead -= s->match_length;
+                  s->match_length = 0;
+                  s->ins_h = s->window[s->strstart];
+                }
+              if (bflush)
+                FLUSH_BLOCK (s, 0);
+            }
+        }
+    }
+
   s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
   if (flush == Z_FINISH)
     {
@@ -1923,7 +1833,7 @@ deflate_fast (deflate_state * s, int flush)
     FLUSH_BLOCK (s, 0);
   return block_done;
 }
-#endif
+
 
 #ifndef FASTEST
 /* ===========================================================================
