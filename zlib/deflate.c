@@ -60,26 +60,21 @@ const char deflate_copyright[] =
   include such an acknowledgment, I would appreciate that you keep this
   copyright string in the executable of your product.
  */
-
-/* ===========================================================================
- *  Function prototypes.
- */
-typedef enum
-{
-  need_more,			/* block not completed, need more input or more output */
-  block_done,			/* block flush performed */
-  finish_started,		/* finish started, need only more output at next deflate */
-  finish_done			/* finish done, accept no more input or output */
-} block_state;
-
 typedef
 block_state (*compress_func)
 OF ((deflate_state * s, int flush));
+/* ===========================================================================
+ *  Function prototypes.
+ */
+
 /* Compression function. Returns the block state after the call. */
 
-     local void fill_window OF ((deflate_state * s));
+     void fill_window OF ((deflate_state * s));
      local block_state deflate_stored OF ((deflate_state * s, int flush));
      local block_state deflate_fast OF ((deflate_state * s, int flush));
+#ifndef USE_ORIGIN
+     local block_state deflate_cuda OF ((deflate_state * s, int flush));
+#endif
 #ifndef FASTEST
      local block_state deflate_slow OF ((deflate_state * s, int flush));
 #endif
@@ -87,7 +82,7 @@ OF ((deflate_state * s, int flush));
      local block_state deflate_huff OF ((deflate_state * s, int flush));
      local void lm_init OF ((deflate_state * s));
      local void putShortMSB OF ((deflate_state * s, uInt b));
-     local void flush_pending OF ((z_streamp strm));
+     void flush_pending OF ((z_streamp strm));
      local int read_buf OF ((z_streamp strm, Bytef * buf, unsigned size));
 #ifdef ASMV
      void match_init OF ((void));	/* asm code initialization */
@@ -135,6 +130,8 @@ OF ((deflate_state * s, int flush));
 /* 1 */ {4, 4, 8, 4, deflate_fast}
      };				/* max speed, no lazy matches */
 #else
+
+#ifdef USE_ORIGIN
      local const config configuration_table[10] = {
 /*      good lazy nice chain */
 						/* 0 */ {0, 0, 0, 0, deflate_stored},
@@ -152,6 +149,26 @@ OF ((deflate_state * s, int flush));
 /* 8 */ {32, 128, 258, 1024, deflate_slow},
 /* 9 */ {32, 258, 258, 4096, deflate_slow}
      };				/* max compression */
+#else
+     local const config configuration_table[10] = {
+/*      good lazy nice chain */
+						/* 0 */ {0, 0, 0, 0, deflate_stored},
+						/* store only */
+						/* 1 */ {4, 4, 8, 4, deflate_cuda},
+						/* max speed, no lazy matches */
+                        /* 2 */ {4, 5, 16, 8, deflate_cuda},
+/* 3 */ {4, 6, 32, 32, deflate_cuda},
+
+						/* 4 */ {4, 4, 16, 16, deflate_cuda},
+						/* lazy matches */
+/* 5 */ {8, 16, 32, 32, deflate_cuda},
+/* 6 */ {8, 16, 128, 128, deflate_cuda},
+/* 7 */ {8, 32, 128, 256, deflate_cuda},
+/* 8 */ {32, 128, 258, 1024, deflate_cuda},
+/* 9 */ {32, 258, 258, 4096, deflate_cuda}
+     };				/* max compression */
+#endif
+
 #endif
 
 /* Note: the deflate() code requires max_lazy >= MIN_MATCH and max_chain >= 4
@@ -669,7 +686,7 @@ putShortMSB (deflate_state * s, uInt b)
  * to avoid allocating a large strm->next_out buffer and copying into it.
  * (See also read_buf()).
  */
-local void
+void
 flush_pending (z_streamp strm)
 {
   unsigned len;
@@ -1494,9 +1511,8 @@ check_match (deflate_state * s, IPos start, IPos match, int length)
  *    performed for at least two bytes (required for the zip translate_eol
  *    option -- not supported here).
  */
-// #define USE_ORIGIN 1
 #ifdef USE_ORIGIN
-local void
+void
 fill_window (deflate_state * s)
 {
   register unsigned n, m;
@@ -1659,7 +1675,7 @@ fill_window (deflate_state * s)
 }
 #else /* #ifdef USE_ORIGIN */
 
-local void
+void
 fill_window (deflate_state * s)
 {
   register unsigned n, m;
@@ -1727,28 +1743,7 @@ fill_window (deflate_state * s)
 
 #endif /* #ifdef USE_ORIGIN */
 
-/* ===========================================================================
- * Flush the current block, with given end-of-file flag.
- * IN assertion: strstart is set to the end of the current match.
- */
-#define FLUSH_BLOCK_ONLY(s, last) { \
-   _tr_flush_block(s, (s->block_start >= 0L ? \
-                   (charf *)&s->window[(unsigned)s->block_start] : \
-                   (charf *)Z_NULL), \
-                (ulg)((long)s->strstart - s->block_start), \
-                (last)); \
-   s->block_start = s->strstart; \
-   flush_pending(s->strm); \
-   Tracev((stderr,"[FLUSH]")); \
-}
-
-/* Same but force premature exit if necessary. */
-#define FLUSH_BLOCK(s, last) { \
-   FLUSH_BLOCK_ONLY(s, last); \
-   if (s->strm->avail_out == 0) return (last) ? finish_started : need_more; \
-}
-
-/* ===========================================================================
+/* =========================================================================
  * Copy without compression as much as possible from the input stream, return
  * the current block state.
  * This function does not insert new strings in the dictionary since
@@ -1822,7 +1817,6 @@ deflate_stored (deflate_state * s, int flush)
   return block_done;
 }
 
-#ifdef USE_ORIGIN
 local block_state
 deflate_fast (deflate_state * s, int flush)
 {
@@ -1933,107 +1927,18 @@ IPos hash_head;		/* head of the hash chain */
   return block_done;
 }
 
-#else /* #ifdef USE_ORIGIN */
-
 local block_state
-deflate_fast (deflate_state * s, int flush)
+deflate_cuda (deflate_state * s, int flush)
 {
-    printf ("our deflate_fast\n\n");
+  fprintf (stderr, "our deflate_fast called\n");
+  const int threshold = 0*1024*1024; /* If avail_in less than threshold, use old
+                                     algorithm. */
   IPos hash_head;		/* head of the hash chain */
   int bflush;			/* set if current block must be flushed */
-  //fprintf(stderr, "deflast_fast called\n");
-  //int count = 0;
-  int cur = 0;
+
   memcpy (s->host_in, s->strm->next_in, s->strm->avail_in);
-  culzss_longest_match (s, 12*1024*1024, 1);
-
-  for (;;)
-    {
-      /* Make sure that we always have enough lookahead, except
-       * at the end of the input file. We need MAX_MATCH bytes
-       * for the next match, plus MIN_MATCH bytes to insert the
-       * string following the next match.
-       */
-      if (s->lookahead < MIN_LOOKAHEAD)
-	{
-	  fill_window (s);
-	  if (s->lookahead < MIN_LOOKAHEAD && flush == Z_NO_FLUSH)
-	    {
-	      return need_more;
-	    }
-	  if (s->lookahead == 0)
-	    break;		/* flush the current block */
-
-
-      if (s->lookahead < MIN_LOOKAHEAD)
-        {
-          Tracevv ((stderr, "%c", s->window[s->strstart]));
-          _tr_tally_lit (s, s->window[s->strstart], bflush);
-          s->lookahead--;
-          s->strstart++;
-          cur++;
-
-          if (bflush)
-            FLUSH_BLOCK (s, 0);
-        }
-	}
-
-      else
-        {
-            int j = 0;
-            /*
-            for (j = 0; j < s->lookahead; j++)
-                {
-                    fprintf (stderr, "%c", s->window[s->strstart+j]);
-                }
-            fprintf (stderr,
-            "\n-------------------------------------------------------------\n"); */
-            //memcpy (s->host_in, s->window+s->strstart, 48184);
-
-            //culzss_longest_match (s, 48184, 1);
-          while (s->lookahead >= MIN_LOOKAHEAD)
-            {
-              if (cur < CULZSS_WINDOW_SIZE || s->host_encode[cur].dist == 0
-                  || s->lookahead - s->host_encode[cur].len <= MIN_LOOKAHEAD)
-                {
-                  _tr_tally_lit (s, s->window[s->strstart], bflush);
-                  s->strstart++;
-                  cur++;
-                  if (s->lookahead == 0)
-                    break;
-                  s->lookahead--;
-                }
-              else
-                {
-                  int match_length = s->host_encode[cur].len;
-                  s->match_length = match_length>s->lookahead? s->lookahead: match_length;
-                  _tr_tally_dist (s, s->host_encode[cur].dist,
-                                  s->match_length - MIN_MATCH, bflush);
-                  s->strstart += s->match_length;
-                  cur += s->match_length;
-                  s->lookahead -= s->match_length;
-                  s->match_length = 0;
-                  s->ins_h = s->window[s->strstart];
-                }
-              if (bflush)
-                FLUSH_BLOCK (s, 0);
-            }
-        }
-    }
-  //printf ("counts: %d\n", count);
-
-  s->insert = s->strstart < MIN_MATCH - 1 ? s->strstart : MIN_MATCH - 1;
-  if (flush == Z_FINISH)
-    {
-      FLUSH_BLOCK (s, 1);
-      return finish_done;
-    }
-  if (s->last_lit)
-    FLUSH_BLOCK (s, 0);
-  return block_done;
+  return (block_state)culzss_longest_match (s, 12*1024*1024, 1, flush);
 }
-
-#endif /* #ifdef USE_ORIGIN */
 
 
 #ifndef FASTEST

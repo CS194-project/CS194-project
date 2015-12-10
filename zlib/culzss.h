@@ -1,6 +1,8 @@
 #ifndef ZLIB_CULZSS_H
 #define ZLIB_CULZSS_H
 
+#include "deflate.h"
+
 typedef struct internal_state deflate_state;
 
 typedef struct
@@ -41,6 +43,6 @@ const int CULZSS_CUDA_NUM_STREAMS = (CULZSS_MAX_PROCESS_SIZE / CULZSS_CUDA_BLOCK
 
 void culzss_init (deflate_state *s);
 void culzss_destroy (deflate_state *s);
-void culzss_longest_match (deflate_state *s, int size, int is_firstblock);
+int culzss_longest_match (deflate_state *s, int size, int is_firstblock, int flush);
 
 #endif

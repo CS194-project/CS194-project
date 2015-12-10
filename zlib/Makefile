@@ -15,8 +15,8 @@
 #    make install
 # To install in $HOME instead of /usr/local, use:
 #    make install prefix=$HOME
-ifdef CULZSS
-CS194CULZSS:='-DCS194CULZSS=1'
+ifdef USE_ORIGIN
+CS194CULZSS:='-DUSE_ORIGIN=1'
 endif
 CC=g++
 NVCCPATH=/usr/local/cuda/bin

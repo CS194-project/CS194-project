@@ -357,4 +357,38 @@ void ZLIB_INTERNAL _tr_stored_block OF((deflate_state *s, charf *buf,
               flush = _tr_tally(s, distance, length)
 #endif
 
+void fill_window (deflate_state *s);
+
+typedef enum
+{
+  need_more,			/* block not completed, need more input or more output */
+  block_done,			/* block flush performed */
+  finish_started,		/* finish started, need only more output at next deflate */
+  finish_done			/* finish done, accept no more input or output */
+} block_state;
+
+/* ===========================================================================
+ * Flush the current block, with given end-of-file flag.
+ * IN assertion: strstart is set to the end of the current match.
+ */
+#define FLUSH_BLOCK_ONLY(s, last) { \
+   _tr_flush_block(s, (s->block_start >= 0L ? \
+                   (charf *)&s->window[(unsigned)s->block_start] : \
+                   (charf *)Z_NULL), \
+                (ulg)((long)s->strstart - s->block_start), \
+                (last)); \
+   s->block_start = s->strstart; \
+   flush_pending(s->strm); \
+   Tracev((stderr,"[FLUSH]")); \
+}
+
+/* Same but force premature exit if necessary. */
+#define FLUSH_BLOCK(s, last) { \
+   FLUSH_BLOCK_ONLY(s, last); \
+   if (s->strm->avail_out == 0) return (last) ? finish_started : need_more; \
+}
+
+void
+flush_pending (z_streamp strm);
+
 #endif /* DEFLATE_H */
