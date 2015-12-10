@@ -2,6 +2,14 @@ CS194 Fall 2015 Project
 CUDA optimization of pigz
 
 
+pigz folder contains pigz
+zlib folder contains zlib
+
+in zlib folder, "make USE_ORIGIN=1" to compile origin zlib
+in zlib folder, "make" to compile cuda zlib
+194culzss  contains a standalone compression CUDA  program.
+--------------------------------------------------------------------------------------
+
 Oct 31 2015
 
 1. To compile and test the code,
